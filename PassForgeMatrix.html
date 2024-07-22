@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>PassForgeMatrix</title>
+	<style>
+body
+{
+	background-color: #282c35;
+	color: #ffffff;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+}
+
+.container
+{
+	width: 100%;
+	max-width: 400px;
+	margin: auto;
+	padding: 20px;
+	box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+	border-radius: 10px;
+	background-color: #1e1e1e;
+}
+
+.password-generator
+{
+	background-color: #252526;
+	padding: 20px;
+	border-radius: 8px;
+	position: relative;
+}
+
+.password-display
+{
+	font-size: 1em;
+	margin-bottom: 20px;
+	background-color: #1e1e1e;
+	padding: 10px;
+	border-radius: 4px;
+	overflow-wrap: break-word;
+	color: red;
+}
+
+.options
+{
+	margin-bottom: 20px;
+}
+
+.option
+{
+	margin: 10px 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.option label
+{
+	color: #d4d4d4;
+}
+
+.slider
+{
+	width: 100%;
+}
+
+.toggle-switch
+{
+	position: relative;
+	display: inline-block;
+	width: 60px;
+	height: 34px;
+}
+
+.toggle-switch input
+{
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.slider-round
+{
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	transition: .4s;
+	border-radius: 34px;
+}
+
+.slider-round:before
+{
+	position: absolute;
+	content: "";
+	height: 26px;
+	width: 26px;
+	left: 4px;
+	bottom: 4px;
+	background-color: white;
+	transition: .4s;
+	border-radius: 50%;
+}
+
+input:checked+.slider-round
+{
+	background-color: #007acc;
+}
+
+input:checked+.slider-round:before
+{
+	transform: translateX(26px);
+}
+
+.number-input
+{
+	width: 50px;
+	text-align: center;
+	background-color: #1e1e1e;
+	border: none;
+	color: #ffffff;
+}
+
+.number-input:focus
+{
+	outline: none;
+}
+
+.btn
+{
+	background-color: #007acc;
+	border: none;
+	color: white;
+	padding: 5px 10px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 16px;
+	margin: 4px 2px;
+	cursor: pointer;
+	border-radius: 4px;
+	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+.refresh-btn
+{
+	background-color: #4CAF50;
+}
+
+.copy-btn
+{
+	background-color: #007acc;
+}
+
+.copy-success
+{
+	color: #4CAF50;
+	margin-top: 10px;
+}
+
+.title
+{
+	font-size: 18px;
+	text-align: center;
+	color: #008AA5;
+	margin-bottom: 20px;
+	animation: blink 2s infinite;
+}
+
+@keyframes blink
+{
+	0%
+	{
+		opacity: 1;
+	}
+	
+	50%
+	{
+		opacity: 0.5;
+	}
+	
+	100%
+	{
+		opacity: 1;
+	}
+}
+
+.btn-container
+{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.number-input-container
+{
+	display: flex;
+	align-items: center;
+}
+
+.number-input-btn
+{
+	margin: 0 5px;
+}
+
+.footer
+{
+	position: absolute;
+	bottom: 10px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 12px;
+	color: #808080;
+}
+
+.password-display .number,
+.password-display .special,
+.password-display .letter
+{
+	color: red;
+}
+
+.password-display .special
+{
+	color: #007acc;
+}
+
+.password-display .letter
+{
+	color: #f0ffff;
+}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<div class="title">PassForgeMatrix</div>
+		<div class="password-generator">
+			<div class="password-display" id="password-display">aoerJ95AtREp*684k68D9v3izc4CK5x6</div>
+			<div class="options">
+				<div class="option">
+					<label for="password-length">Length</label>
+					<input type="range" id="password-length" name="length" min="8" max="128" value="16" class="slider">
+					<span id="password-length-label">8</span>
+				</div>
+				<div class="option">
+					<label>A-Z</label>
+					<label class="toggle-switch">
+						<input type="checkbox" checked id="upper">
+						<span class="slider-round"></span>
+					</label>
+				</div>
+				<div class="option">
+					<label>a-z</label>
+					<label class="toggle-switch">
+						<input type="checkbox" checked id="lower">
+						<span class="slider-round"></span>
+					</label>
+				</div>
+				<div class="option">
+					<label>0-9</label>
+					<label class="toggle-switch">
+						<input type="checkbox" checked id="number">
+						<span class="slider-round"></span>
+					</label>
+				</div>
+				<div class="option">
+					<label>!@#$%^&*</label>
+					<label class="toggle-switch">
+						<input type="checkbox" checked id="special">
+						<span class="slider-round"></span>
+					</label>
+				</div>
+				<div class="option">
+					<label for="max-numbers">Avoid ambiguous characters</label>
+					<label class="toggle-switch">
+						<input type="checkbox" checked id="ambiguous">
+						<span class="slider-round"></span>
+					</label>
+				</div>
+			</div>
+			<div class="btn-container">
+				<button class="btn refresh-btn" onclick="updatePasswordDisplay()">Refresh</button>
+				<button class="btn copy-btn" onclick="copyToClipboard()">Copy</button>
+			</div>
+		</div>
+		<div id="copy-success" class="copy-success"></div>
+		<div class="footer">Designed by: <b>Anonymous</b></div>
+	</div>
+	<script>
+function updatePasswordDisplay()
+{
+	const passwordDisplay = document.getElementById('password-display');
+	const lengthSlider = document.getElementById('password-length');
+	const lengthLabel = document.getElementById('password-length-label');
+	const upperCheckbox = document.getElementById('upper');
+	const lowerCheckbox = document.getElementById('lower');
+	const numberCheckbox = document.getElementById('number');
+	const specialCheckbox = document.getElementById('special');
+	const ambiguousCheckbox = document.getElementById('ambiguous');
+	const length = parseInt(lengthSlider.value, 10);
+	lengthLabel.textContent = length;
+	const hasUpper = upperCheckbox.checked;
+	const hasLower = lowerCheckbox.checked;
+	const hasNumber = numberCheckbox.checked;
+	const hasSpecial = specialCheckbox.checked;
+	const avoidAmbiguous = ambiguousCheckbox.checked;
+	const newPassword = generatePassword(length, hasUpper, hasLower, hasNumber, hasSpecial, avoidAmbiguous);
+	passwordDisplay.innerHTML = newPassword;
+}
+
+function generatePassword(length, hasUpper, hasLower, hasNumber, hasSpecial, avoidAmbiguous)
+{
+	const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
+	const numberChars = '0123456789';
+	const specialChars = '!@#$%^&*';
+	const ambiguousChars = 'IloO0';
+	let characters = '';
+	characters += hasUpper ? upperChars : '';
+	characters += hasLower ? lowerChars : '';
+	characters += hasNumber ? numberChars : '';
+	characters += hasSpecial ? specialChars : '';
+	if (avoidAmbiguous)
+	{
+		characters = characters.replace(new RegExp('[' + ambiguousChars + ']', 'g'), '');
+	}
+	if (!hasUpper && !hasLower && !hasNumber && !hasSpecial)
+	{
+		const randomIndex = Math.floor(Math.random() * 4);
+		switch (randomIndex)
+		{
+			case 0:
+				hasUpper = true;
+				break;
+			case 1:
+				hasLower = true;
+				break;
+			case 2:
+				hasNumber = true;
+				break;
+			case 3:
+				hasSpecial = true;
+				break;
+		}
+	}
+	let password = '';
+	for (let i = 0; i < length; i++)
+	{
+		const randomChar = characters.charAt(Math.floor(Math.random() * characters.length));
+		if (hasNumber && /\d/.test(randomChar))
+		{
+			password += `<span class="number">${randomChar}</span>`;
+		}
+		else if (hasSpecial && /[!@#$%^&*]/.test(randomChar))
+		{
+			password += `<span class="special">${randomChar}</span>`;
+		}
+		else if (/[a-zA-Z]/.test(randomChar))
+		{
+			password += `<span class="letter">${randomChar}</span>`;
+		}
+		else
+		{
+			password += randomChar;
+		}
+	}
+	return password;
+}
+
+function copyToClipboard()
+{
+	const passwordDisplay = document.getElementById('password-display');
+	const newPassword = passwordDisplay.textContent;
+	navigator.clipboard.writeText(newPassword)
+		.then(function()
+		{
+			const copySuccess = document.getElementById('copy-success');
+			copySuccess.textContent = 'Copied to clipboard!';
+			setTimeout(function()
+			{
+				copySuccess.textContent = '';
+			}, 2000);
+		}, function(err)
+		{
+			console.error('Failed to copy: ', err);
+		});
+}
+document.addEventListener('DOMContentLoaded', function()
+{
+	const passwordDisplay = document.getElementById('password-display');
+	const lengthSlider = document.getElementById('password-length');
+	const upperCheckbox = document.getElementById('upper');
+	const lowerCheckbox = document.getElementById('lower');
+	const numberCheckbox = document.getElementById('number');
+	const specialCheckbox = document.getElementById('special');
+	const ambiguousCheckbox = document.getElementById('ambiguous');
+	lengthSlider.addEventListener('input', updatePasswordDisplay);
+	upperCheckbox.addEventListener('change', updatePasswordDisplay);
+	lowerCheckbox.addEventListener('change', updatePasswordDisplay);
+	numberCheckbox.addEventListener('change', updatePasswordDisplay);
+	specialCheckbox.addEventListener('change', updatePasswordDisplay);
+	ambiguousCheckbox.addEventListener('change', updatePasswordDisplay);
+	updatePasswordDisplay();
+});
+	</script>
+</body>
+
+</html>
