@@ -2,418 +2,636 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>PassForgeMatrix</title>
-	<style>
-body
-{
-	background-color: #282c35;
-	color: #ffffff;
-	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-	margin: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 100vh;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassForgeMatrix Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #282c35;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #ffffff;
+            --accent-color: #007acc;
+            --success-color: #4CAF50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+        }
 
-.container
-{
-	width: 100%;
-	max-width: 400px;
-	margin: auto;
-	padding: 20px;
-	box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
-	border-radius: 10px;
-	background-color: #1e1e1e;
-}
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #333333;
+            --accent-color: #0066cc;
+        }
 
-.password-generator
-{
-	background-color: #252526;
-	padding: 20px;
-	border-radius: 8px;
-	position: relative;
-}
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
 
-.password-display
-{
-	font-size: 1em;
-	margin-bottom: 20px;
-	background-color: #1e1e1e;
-	padding: 10px;
-	border-radius: 4px;
-	overflow-wrap: break-word;
-	color: red;
-}
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px;
+            padding: 20px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            background-color: var(--bg-secondary);
+        }
 
-.options
-{
-	margin-bottom: 20px;
-}
+        .password-generator {
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+        }
 
-.option
-{
-	margin: 10px 0;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-}
+        .password-display-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
 
-.option label
-{
-	color: #d4d4d4;
-}
+        .password-display {
+            font-family: 'Courier New', monospace;
+            background-color: var(--bg-primary);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-wrap: break-word;
+            position: relative;
+            transition: all 0.3s;
+            font-size: var(--password-font-size, 1em);
+        }
 
-.slider
-{
-	width: 100%;
-}
+        .password-strength {
+            margin-top: 10px;
+            height: 5px;
+            background-color: #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+        }
 
-.toggle-switch
-{
-	position: relative;
-	display: inline-block;
-	width: 60px;
-	height: 34px;
-}
+        .strength-bar {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s, background-color 0.3s;
+        }
 
-.toggle-switch input
-{
-	opacity: 0;
-	width: 0;
-	height: 0;
-}
+        .password-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.8em;
+        }
 
-.slider-round
-{
-	position: absolute;
-	cursor: pointer;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: #ccc;
-	transition: .4s;
-	border-radius: 34px;
-}
+        .options {
+            margin: 20px 0;
+        }
 
-.slider-round:before
-{
-	position: absolute;
-	content: "";
-	height: 26px;
-	width: 26px;
-	left: 4px;
-	bottom: 4px;
-	background-color: white;
-	transition: .4s;
-	border-radius: 50%;
-}
+        .advanced-options {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+        }
 
-input:checked+.slider-round
-{
-	background-color: #007acc;
-}
+        .option {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-input:checked+.slider-round:before
-{
-	transform: translateX(26px);
-}
+        .slider {
+            width: 100%;
+            margin: 10px;
+        }
 
-.number-input
-{
-	width: 50px;
-	text-align: center;
-	background-color: #1e1e1e;
-	border: none;
-	color: #ffffff;
-}
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
 
-.number-input:focus
-{
-	outline: none;
-}
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
 
-.btn
-{
-	background-color: #007acc;
-	border: none;
-	color: white;
-	padding: 5px 10px;
-	text-align: center;
-	text-decoration: none;
-	display: inline-block;
-	font-size: 16px;
-	margin: 4px 2px;
-	cursor: pointer;
-	border-radius: 4px;
-	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-}
+        .slider-round {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
 
-.refresh-btn
-{
-	background-color: #4CAF50;
-}
+        .slider-round:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
 
-.copy-btn
-{
-	background-color: #007acc;
-}
+        input:checked+.slider-round {
+            background-color: var(--accent-color);
+        }
 
-.copy-success
-{
-	color: #4CAF50;
-	margin-top: 10px;
-}
+        input:checked+.slider-round:before {
+            transform: translateX(26px);
+        }
 
-.title
-{
-	font-size: 18px;
-	text-align: center;
-	color: #008AA5;
-	margin-bottom: 20px;
-	animation: blink 2s infinite;
-}
+        .number-input {
+            width: 60px;
+            text-align: center;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--accent-color);
+            color: var(--text-primary);
+            padding: 5px;
+            border-radius: 4px;
+        }
 
-@keyframes blink
-{
-	0%
-	{
-		opacity: 1;
-	}
-	
-	50%
-	{
-		opacity: 0.5;
-	}
-	
-	100%
-	{
-		opacity: 1;
-	}
-}
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
 
-.btn-container
-{
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
+        .btn {
+            background-color: var(--accent-color);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            flex: 1;
+        }
 
-.number-input-container
-{
-	display: flex;
-	align-items: center;
-}
+        .btn:active {
+            transform: scale(0.98);
+        }
 
-.number-input-btn
-{
-	margin: 0 5px;
-}
+        .refresh-btn {
+            background-color: var(--success-color);
+        }
 
-.footer
-{
-	position: absolute;
-	bottom: 10px;
-	left: 50%;
-	transform: translateX(-50%);
-	font-size: 12px;
-	color: #808080;
-}
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 24px;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
 
-.password-display .number,
-.password-display .special,
-.password-display .letter
-{
-	color: red;
-}
+        .theme-toggle:hover {
+            background-color: rgba(128, 128, 128, 0.2);
+        }
 
-.password-display .special
-{
-	color: #007acc;
-}
+        .font-size-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
 
-.password-display .letter
-{
-	color: #f0ffff;
-}
-	</style>
+        .font-size-btn {
+            padding: 5px 10px;
+            background-color: var(--accent-color);
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px;
+            color: var(--text-primary);
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 10px;
+            }
+
+            .btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+
+        .copy-success {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .copy-success.show {
+            opacity: 1;
+        }
+
+        @keyframes generate {
+            0% {
+                transform: scale(0.98);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .generating {
+            animation: generate 0.3s ease-out;
+        }
+
+        .title {
+            font-size: 24px;
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 
 <body>
-	<div class="container">
-		<div class="title">PassForgeMatrix</div>
-		<div class="password-generator">
-			<div class="password-display" id="password-display">aoerJ95AtREp*684k68D9v3izc4CK5x6</div>
-			<div class="options">
-				<div class="option">
-					<label for="password-length">Length</label>
-					<input type="range" id="password-length" name="length" min="8" max="128" value="16" class="slider">
-					<span id="password-length-label">8</span>
-				</div>
-				<div class="option">
-					<label>A-Z</label>
-					<label class="toggle-switch">
-						<input type="checkbox" checked id="upper">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label>a-z</label>
-					<label class="toggle-switch">
-						<input type="checkbox" checked id="lower">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label>0-9</label>
-					<label class="toggle-switch">
-						<input type="checkbox" checked id="number">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label>!@#$%^&*</label>
-					<label class="toggle-switch">
-						<input type="checkbox" checked id="special">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label for="max-numbers">Avoid ambiguous characters</label>
-					<label class="toggle-switch">
-						<input type="checkbox" checked id="ambiguous">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-			</div>
-			<div class="btn-container">
-				<button class="btn refresh-btn" onclick="updatePasswordDisplay()">Refresh</button>
-				<button class="btn copy-btn" onclick="copyToClipboard()">Copy</button>
-			</div>
-		</div>
-		<div id="copy-success" class="copy-success"></div>
-		<div class="footer">Designed by: <b>Anonymous</b></div>
-	</div>
-	<script>
-function updatePasswordDisplay()
-{
-	const passwordDisplay = document.getElementById('password-display');
-	const lengthSlider = document.getElementById('password-length');
-	const lengthLabel = document.getElementById('password-length-label');
-	const upperCheckbox = document.getElementById('upper');
-	const lowerCheckbox = document.getElementById('lower');
-	const numberCheckbox = document.getElementById('number');
-	const specialCheckbox = document.getElementById('special');
-	const ambiguousCheckbox = document.getElementById('ambiguous');
-	const length = parseInt(lengthSlider.value, 10);
-	lengthLabel.textContent = length;
-	const hasUpper = upperCheckbox.checked;
-	const hasLower = lowerCheckbox.checked;
-	const hasNumber = numberCheckbox.checked;
-	const hasSpecial = specialCheckbox.checked;
-	const avoidAmbiguous = ambiguousCheckbox.checked;
-	const newPassword = generatePassword(length, hasUpper, hasLower, hasNumber, hasSpecial, avoidAmbiguous);
-	passwordDisplay.innerHTML = newPassword;
-}
+    <div class="container">
+        <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+        <div class="title">PassForgeMatrix Pro</div>
+        <div class="password-generator">
+            <div class="password-display-container">
+                <div class="password-display" id="password-display"></div>
+                <div class="password-strength">
+                    <div class="strength-bar" id="strength-bar"></div>
+                </div>
+                <div class="password-info">
+                    <span id="strength-text"></span>
+                    <span id="crack-time"></span>
+                </div>
+                <div class="font-size-controls">
+                    <button class="font-size-btn" onclick="changeFontSize(-0.1)">A-</button>
+                    <button class="font-size-btn" onclick="changeFontSize(0.1)">A+</button>
+                </div>
+            </div>
+            <div class="options">
+                <div class="option">
+                    <label for="password-length">Length</label>
+                    <input type="range" id="password-length" name="length" min="8" max="128" value="16" class="slider">
+                    <span id="password-length-label">16</span>
+                </div>
+                <div class="option">
+                    <label>Uppercase (A-Z)</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="upper">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+                <div class="option">
+                    <label>Lowercase (a-z)</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="lower">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+                <div class="option">
+                    <label>Numbers (0-9)</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="number">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+                <div class="option">
+                    <label>Special (!@#$%^&*)</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="special">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+                <div class="option">
+                    <label>Extra Special ((){}[]<>,.;:)</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="extra-special">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="advanced-options">
+                <div class="option">
+                    <label>Avoid ambiguous characters</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="ambiguous">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+                <div class="option">
+                    <label>Minimum uppercase</label>
+                    <input type="number" min="0" max="10" value="1" id="min-upper" class="number-input">
+                </div>
+                <div class="option">
+                    <label>Minimum numbers</label>
+                    <input type="number" min="0" max="10" value="1" id="min-numbers" class="number-input">
+                </div>
+                <div class="option">
+                    <label>Minimum special</label>
+                    <input type="number" min="0" max="10" value="1" id="min-special" class="number-input">
+                </div>
+                <div class="option">
+                    <label>No special at start/end</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="no-special-ends">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="btn-container">
+                <button class="btn refresh-btn" onclick="updatePasswordDisplay()">Generate</button>
+                <button class="btn" onclick="copyToClipboard()">Copy</button>
+            </div>
+        </div>
+        <div id="copy-success" class="copy-success"></div>
+    </div>
+    <div class="footer">
+        Designed by: Anonymous
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.min.js"></script>
+    <script>
+        let currentFontSize = 1;
 
-function generatePassword(length, hasUpper, hasLower, hasNumber, hasSpecial, avoidAmbiguous)
-{
-	const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-	const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
-	const numberChars = '0123456789';
-	const specialChars = '!@#$%^&*';
-	const ambiguousChars = 'IloO0';
-	let characters = '';
-	characters += hasUpper ? upperChars : '';
-	characters += hasLower ? lowerChars : '';
-	characters += hasNumber ? numberChars : '';
-	characters += hasSpecial ? specialChars : '';
-	if (avoidAmbiguous)
-	{
-		characters = characters.replace(new RegExp('[' + ambiguousChars + ']', 'g'), '');
-	}
-	if (!hasUpper && !hasLower && !hasNumber && !hasSpecial)
-	{
-		const randomIndex = Math.floor(Math.random() * 4);
-		switch (randomIndex)
-		{
-			case 0:
-				hasUpper = true;
-				break;
-			case 1:
-				hasLower = true;
-				break;
-			case 2:
-				hasNumber = true;
-				break;
-			case 3:
-				hasSpecial = true;
-				break;
-		}
-	}
-	let password = '';
-	for (let i = 0; i < length; i++)
-	{
-		const randomChar = characters.charAt(Math.floor(Math.random() * characters.length));
-		if (hasNumber && /\d/.test(randomChar))
-		{
-			password += `<span class="number">${randomChar}</span>`;
-		}
-		else if (hasSpecial && /[!@#$%^&*]/.test(randomChar))
-		{
-			password += `<span class="special">${randomChar}</span>`;
-		}
-		else if (/[a-zA-Z]/.test(randomChar))
-		{
-			password += `<span class="letter">${randomChar}</span>`;
-		}
-		else
-		{
-			password += randomChar;
-		}
-	}
-	return password;
-}
+        function changeFontSize(delta) {
+            currentFontSize = Math.max(0.8, Math.min(1.5, currentFontSize + delta));
+            document.querySelector('.password-display').style.setProperty('--password-font-size', `${currentFontSize}em`);
+        }
 
-function copyToClipboard()
-{
-	const passwordDisplay = document.getElementById('password-display');
-	const newPassword = passwordDisplay.textContent;
-	navigator.clipboard.writeText(newPassword)
-		.then(function()
-		{
-			const copySuccess = document.getElementById('copy-success');
-			copySuccess.textContent = 'Copied to clipboard!';
-			setTimeout(function()
-			{
-				copySuccess.textContent = '';
-			}, 2000);
-		}, function(err)
-		{
-			console.error('Failed to copy: ', err);
-		});
-}
-document.addEventListener('DOMContentLoaded', function()
-{
-	const passwordDisplay = document.getElementById('password-display');
-	const lengthSlider = document.getElementById('password-length');
-	const upperCheckbox = document.getElementById('upper');
-	const lowerCheckbox = document.getElementById('lower');
-	const numberCheckbox = document.getElementById('number');
-	const specialCheckbox = document.getElementById('special');
-	const ambiguousCheckbox = document.getElementById('ambiguous');
-	lengthSlider.addEventListener('input', updatePasswordDisplay);
-	upperCheckbox.addEventListener('change', updatePasswordDisplay);
-	lowerCheckbox.addEventListener('change', updatePasswordDisplay);
-	numberCheckbox.addEventListener('change', updatePasswordDisplay);
-	specialCheckbox.addEventListener('change', updatePasswordDisplay);
-	ambiguousCheckbox.addEventListener('change', updatePasswordDisplay);
-	updatePasswordDisplay();
-});
-	</script>
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        function calculatePasswordStrength(password) {
+            let score = 0;
+            const length = password.length;
+
+            score += length * 4;
+            if (/[A-Z]/.test(password)) score += 20;
+            if (/[a-z]/.test(password)) score += 20;
+            if (/\d/.test(password)) score += 20;
+            if (/[!@#$%^&*(){}[\]<>,.;:]/.test(password)) score += 20;
+
+            const uniqueChars = new Set(password).size;
+            score += uniqueChars * 3;
+
+            const strength = Math.min(100, score);
+            return {
+                score: strength,
+                text: strength < 40 ? 'Weak' : strength < 70 ? 'Moderate' : 'Strong',
+                color: strength < 40 ? '#f44336' : strength < 70 ? '#ff9800' : '#4CAF50'
+            };
+        }
+
+        function estimateCrackTime(password) {
+            const combinations = Math.pow(95, password.length);
+            const guessesPerSecond = 1000000000;
+            const seconds = combinations / guessesPerSecond;
+
+            if (seconds < 60) return 'Less than a minute';
+            if (seconds < 3600) return `${Math.round(seconds / 60)} minutes`;
+            if (seconds < 86400) return `${Math.round(seconds / 3600)} hours`;
+            if (seconds < 2592000) return `${Math.round(seconds / 86400)} days`;
+            if (seconds < 31536000) return `${Math.round(seconds / 2592000)} months`;
+            return `${Math.round(seconds / 31536000)} years`;
+        }
+
+        function updatePasswordDisplay() {
+            const passwordDisplay = document.getElementById('password-display');
+            const lengthSlider = document.getElementById('password-length');
+            const lengthLabel = document.getElementById('password-length-label');
+
+            const options = {
+                length: parseInt(lengthSlider.value, 10),
+                upper: document.getElementById('upper').checked,
+                lower: document.getElementById('lower').checked,
+                number: document.getElementById('number').checked,
+                special: document.getElementById('special').checked,
+                extraSpecial: document.getElementById('extra-special').checked,
+                ambiguous: document.getElementById('ambiguous').checked,
+                minUpper: parseInt(document.getElementById('min-upper').value, 10),
+                minNumbers: parseInt(document.getElementById('min-numbers').value, 10),
+                minSpecial: parseInt(document.getElementById('min-special').value, 10),
+                noSpecialEnds: document.getElementById('no-special-ends').checked
+            };
+
+            lengthLabel.textContent = options.length;
+
+            const newPassword = generatePassword(options);
+            passwordDisplay.classList.add('generating');
+            setTimeout(() => passwordDisplay.classList.remove('generating'), 300);
+
+            const strengthResult = calculatePasswordStrength(newPassword);
+            const strengthBar = document.getElementById('strength-bar');
+            const strengthText = document.getElementById('strength-text');
+            const crackTime = document.getElementById('crack-time');
+
+            strengthBar.style.width = `${strengthResult.score}%`;
+            strengthBar.style.backgroundColor = strengthResult.color;
+            strengthText.textContent = strengthResult.text;
+            crackTime.textContent = `Crack time: ${estimateCrackTime(newPassword)}`;
+
+            passwordDisplay.innerHTML = Array.from(newPassword).map(char => {
+                if (/\d/.test(char)) return `<span style="color:red">${char}</span>`;
+                if (/[!@#$%^&*(){}[\]<>,.;:]/.test(char)) return `<span style="color:#007acc">${char}</span>`;
+                return `<span style="color:inherit">${char}</span>`;
+            }).join('');
+        }
+
+        function generatePassword(options) {
+            const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
+            const numberChars = '0123456789';
+            const specialChars = '!@#$%^&*';
+            const extraSpecialChars = '(){}[]<>,.;:';
+            const ambiguousChars = 'Il1O0';
+
+            let chars = '';
+            let password = '';
+
+            if (options.upper) chars += upperChars;
+            if (options.lower) chars += lowerChars;
+            if (options.number) chars += numberChars;
+            if (options.special) chars += specialChars;
+            if (options.extraSpecial) chars += extraSpecialChars;
+
+            if (options.ambiguous) {
+                chars = chars.replace(new RegExp(`[${ambiguousChars}]`, 'g'), '');
+            }
+
+            if (!chars) {
+                chars = upperChars + lowerChars;
+            }
+
+            const guaranteedChars = [];
+
+            if (options.upper) {
+                for (let i = 0; i < options.minUpper; i++) {
+                    guaranteedChars.push(upperChars[Math.floor(Math.random() * upperChars.length)]);
+                }
+            }
+
+            if (options.number) {
+                for (let i = 0; i < options.minNumbers; i++) {
+                    guaranteedChars.push(numberChars[Math.floor(Math.random() * numberChars.length)]);
+                }
+            }
+
+            if (options.special || options.extraSpecial) {
+                const allSpecial = options.extraSpecial ? specialChars + extraSpecialChars : specialChars;
+                for (let i = 0; i < options.minSpecial; i++) {
+                    guaranteedChars.push(allSpecial[Math.floor(Math.random() * allSpecial.length)]);
+                }
+            }
+
+            const remainingLength = options.length - guaranteedChars.length;
+            for (let i = 0; i < remainingLength; i++) {
+                guaranteedChars.push(chars[Math.floor(Math.random() * chars.length)]);
+            }
+
+            for (let i = guaranteedChars.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
+            }
+
+            password = guaranteedChars.join('');
+
+            if (options.noSpecialEnds) {
+                while (/^[!@#$%^&*(){}[\]<>,.;:]/.test(password) || /[!@#$%^&*(){}[\]<>,.;:]$/.test(password)) {
+                    for (let i = guaranteedChars.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
+                    }
+                    password = guaranteedChars.join('');
+                }
+            }
+
+            return password;
+        }
+
+        function copyToClipboard() {
+            const passwordDisplay = document.getElementById('password-display');
+            const password = passwordDisplay.textContent;
+            navigator.clipboard.writeText(password).then(() => {
+                const copySuccess = document.getElementById('copy-success');
+                copySuccess.textContent = 'Password copied to clipboard!';
+                copySuccess.classList.add('show');
+                setTimeout(() => copySuccess.classList.remove('show'), 2000);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+
+            // Add live update for password length slider
+            const lengthSlider = document.getElementById('password-length');
+            const lengthLabel = document.getElementById('password-length-label');
+            lengthSlider.addEventListener('input', () => {
+                lengthLabel.textContent = lengthSlider.value;
+            });
+
+            const elements = [
+                'password-length', 'upper', 'lower', 'number',
+                'special', 'extra-special', 'ambiguous', 'min-upper',
+                'min-numbers', 'min-special', 'no-special-ends'
+            ];
+
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', updatePasswordDisplay);
+                }
+            });
+
+            const tooltips = {
+                'upper': 'Include uppercase letters (A-Z)',
+                'lower': 'Include lowercase letters (a-z)',
+                'number': 'Include numbers (0-9)',
+                'special': 'Include special characters (!@#$%^&*)',
+                'extra-special': 'Include extra special characters ((){}[]<>,.;:)',
+                'ambiguous': 'Exclude similar-looking characters (Il1O0)',
+                'min-upper': 'Minimum number of uppercase letters',
+                'min-numbers': 'Minimum number of numbers',
+                'min-special': 'Minimum number of special characters',
+                'no-special-ends': 'Avoid special characters at start and end of password'
+            };
+
+            for (const [id, content] of Object.entries(tooltips)) {
+                const element = document.getElementById(id);
+                if (element) {
+                    tippy(element.closest('.option'), {
+                        content,
+                        placement: 'right'
+                    });
+                }
+            }
+
+            updatePasswordDisplay();
+        });
+    </script>
 </body>
 
 </html>
