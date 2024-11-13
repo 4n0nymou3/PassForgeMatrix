@@ -460,14 +460,14 @@ input:checked+.slider-round:before
 				<div class="option">
 					<label>Numbers (0-9)</label>
 					<label class="toggle-switch">
-						<input type="checkbox" checked id="number">
+						<input type="checkbox" id="number">
 						<span class="slider-round"></span>
 					</label>
 				</div>
 				<div class="option">
 					<label>Special (!@#$%^&*)</label>
 					<label class="toggle-switch">
-						<input type="checkbox" checked id="special">
+						<input type="checkbox" id="special">
 						<span class="slider-round"></span>
 					</label>
 				</div>
@@ -718,16 +718,21 @@ function generatePassword(options)
                 [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
 	}
 	password = guaranteedChars.join('');
-	if (options.noSpecialEnds)
+	if (options.noSpecialEnds && (options.special || options.extraSpecial))
 	{
-		while (/^[!@#$%^&*(){}[\]<>,.;:]/.test(password) || /[!@#$%^&*(){}[\]<>,.;:]$/.test(password))
+		const specialPattern = options.extraSpecial ? /^[!@#$%^&*(){}[\]<>,.;:]|[!@#$%^&*(){}[\]<>,.;:]$/ : /^[!@#$%^&*]|[!@#$%^&*]$/;
+		let attempts = 0;
+		const maxAttempts = 100; // برای جلوگیری از حلقه بی‌نهایت
+		while (specialPattern.test(password) && attempts < maxAttempts)
 		{
+			guaranteedChars = Array.from(password);
 			for (let i = guaranteedChars.length - 1; i > 0; i--)
 			{
 				const j = Math.floor(Math.random() * (i + 1));
-                        [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
+            [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
 			}
 			password = guaranteedChars.join('');
+			attempts++;
 		}
 	}
 	if (options.noNumberEnds && options.number)
@@ -870,6 +875,30 @@ document.getElementById('number')
 			noNumberEndsCheckbox.checked = false;
 		}
 	});
+
+function updateNoSpecialEndsState()
+{
+	const specialCheckbox = document.getElementById('special');
+	const extraSpecialCheckbox = document.getElementById('extra-special');
+	const noSpecialEndsCheckbox = document.getElementById('no-special-ends');
+	if (!specialCheckbox.checked && !extraSpecialCheckbox.checked)
+	{
+		noSpecialEndsCheckbox.disabled = true;
+		noSpecialEndsCheckbox.checked = false;
+	}
+	else
+	{
+		noSpecialEndsCheckbox.disabled = false;
+	}
+}
+document.getElementById('special')
+	.addEventListener('change', updateNoSpecialEndsState);
+document.getElementById('extra-special')
+	.addEventListener('change', updateNoSpecialEndsState);
+document.addEventListener('DOMContentLoaded', function()
+{
+	updateNoSpecialEndsState();
+});
 	</script>
 </body>
 
