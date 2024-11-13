@@ -518,6 +518,13 @@ input:checked+.slider-round:before
 						<span class="slider-round"></span>
 					</label>
 				</div>
+				<div class="option">
+					<label>No numbers at start/end</label>
+					<label class="toggle-switch">
+						<input type="checkbox" id="no-number-ends" disabled>
+						<span class="slider-round"></span>
+					</label>
+				</div>
 			</div>
 			<div class="btn-container">
 				<button class="btn refresh-btn" onclick="updatePasswordDisplay()">Generate</button>
@@ -629,6 +636,8 @@ function updatePasswordDisplay()
 			.value, 10)
 		, noSpecialEnds: document.getElementById('no-special-ends')
 			.checked
+		, noNumberEnds: document.getElementById('no-number-ends')
+			.checked
 	};
 	lengthLabel.textContent = options.length;
 	const newPassword = generatePassword(options);
@@ -721,6 +730,18 @@ function generatePassword(options)
 			password = guaranteedChars.join('');
 		}
 	}
+	if (options.noNumberEnds && options.number)
+	{
+		while (/^\d/.test(password) || /\d$/.test(password))
+		{
+			for (let i = guaranteedChars.length - 1; i > 0; i--)
+			{
+				const j = Math.floor(Math.random() * (i + 1));
+            [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
+			}
+			password = guaranteedChars.join('');
+		}
+	}
 	return password;
 }
 
@@ -750,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () =>
 	const elements = [
                 'password-length', 'upper', 'lower', 'number'
                 , 'special', 'extra-special', 'ambiguous', 'min-upper'
-                , 'min-numbers', 'min-special', 'no-special-ends'
+                , 'min-numbers', 'min-special', 'no-special-ends', 'no-number-ends'
             ];
 	elements.forEach(id =>
 	{
@@ -771,6 +792,7 @@ document.addEventListener('DOMContentLoaded', () =>
 		, 'min-numbers': 'Minimum number of numbers'
 		, 'min-special': 'Minimum number of special characters'
 		, 'no-special-ends': 'Avoid special characters at start and end of password'
+		, 'no-number-ends': 'Avoid numbers at start and end of password'
 	};
 	for (const [id, content] of Object.entries(tooltips))
 	{
@@ -833,6 +855,20 @@ document.getElementById('password-length')
 				input.value = maxAllowed;
 			}
 		});
+	});
+document.getElementById('number')
+	.addEventListener('change', function(e)
+	{
+		const noNumberEndsCheckbox = document.getElementById('no-number-ends');
+		if (e.target.checked)
+		{
+			noNumberEndsCheckbox.disabled = false;
+		}
+		else
+		{
+			noNumberEndsCheckbox.disabled = true;
+			noNumberEndsCheckbox.checked = false;
+		}
 	});
 	</script>
 </body>
