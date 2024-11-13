@@ -231,15 +231,41 @@ input:checked+.slider-round:before
 	border: none;
 	color: var(--text-primary);
 	cursor: pointer;
-	font-size: 24px;
 	padding: 8px;
 	border-radius: 50%;
 	transition: background-color 0.3s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
 }
 
 .theme-toggle:hover
 {
 	background-color: rgba(128, 128, 128, 0.2);
+}
+
+[data-theme="dark"] .sun-icon
+{
+	display: none;
+}
+
+[data-theme="light"] .moon-icon
+{
+	display: none;
+}
+
+.sun-icon,
+.moon-icon
+{
+	transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover .sun-icon,
+.theme-toggle:hover .moon-icon
+{
+	transform: rotate(30deg);
 }
 
 .font-size-controls
@@ -379,7 +405,22 @@ input:checked+.slider-round:before
 
 <body>
 	<div class="container">
-		<button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+		<button class="theme-toggle" onclick="toggleTheme()">
+			<svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="12" cy="12" r="5"></circle>
+				<line x1="12" y1="1" x2="12" y2="3"></line>
+				<line x1="12" y1="21" x2="12" y2="23"></line>
+				<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+				<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+				<line x1="1" y1="12" x2="3" y2="12"></line>
+				<line x1="21" y1="12" x2="23" y2="12"></line>
+				<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+				<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+			</svg>
+			<svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+			</svg>
+		</button>
 		<div class="title">PassForgeMatrix Pro</div>
 		<div class="password-generator">
 			<div class="password-display-container">
@@ -511,15 +552,29 @@ function calculatePasswordStrength(password)
 {
 	let score = 0;
 	const length = password.length;
-	score += length * 4;
-	if (/[A-Z]/.test(password)) score += 20;
-	if (/[a-z]/.test(password)) score += 20;
-	if (/\d/.test(password)) score += 20;
-	if (/[!@#$%^&*(){}[\]<>,.;:]/.test(password)) score += 20;
+	if (length < 8) score += 10;
+	else if (length < 10) score += 20;
+	else if (length < 12) score += 30;
+	else if (length < 14) score += 40;
+	else score += 50;
+	const hasUpper = /[A-Z]/.test(password);
+	const hasLower = /[a-z]/.test(password);
+	const hasNumber = /\d/.test(password);
+	const hasSpecial = /[!@#$%^&*(){}[\]<>,.;:]/.test(password);
+	if (hasUpper) score += 10;
+	if (hasLower) score += 10;
+	if (hasNumber) score += 10;
+	if (hasSpecial) score += 10;
+	let complexityCount = [hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean)
+		.length;
+	score += complexityCount * 5;
 	const uniqueChars = new Set(password)
 		.size;
-	score += uniqueChars * 3;
-	const strength = Math.min(100, score);
+	score += Math.min(uniqueChars * 2, 20);
+	if (/(.)\1{2,}/.test(password)) score -= 10;
+	if (/^[a-zA-Z]+$/.test(password)) score -= 10;
+	if (/^\d+$/.test(password)) score -= 10;
+	const strength = Math.max(0, Math.min(100, score));
 	return {
 		score: strength
 		, text: strength < 40 ? 'Weak' : strength < 70 ? 'Moderate' : 'Strong'
@@ -529,15 +584,22 @@ function calculatePasswordStrength(password)
 
 function estimateCrackTime(password)
 {
-	const combinations = Math.pow(95, password.length);
-	const guessesPerSecond = 1000000000;
+	const guessesPerSecond = 1000000000000;
+	let possibleChars = 0;
+	if (/[a-z]/.test(password)) possibleChars += 26;
+	if (/[A-Z]/.test(password)) possibleChars += 26;
+	if (/\d/.test(password)) possibleChars += 10;
+	if (/[!@#$%^&*(){}[\]<>,.;:]/.test(password)) possibleChars += 30;
+	const combinations = Math.pow(Math.max(possibleChars, 26), password.length);
 	const seconds = combinations / guessesPerSecond;
-	if (seconds < 60) return 'Less than a minute';
-	if (seconds < 3600) return `${Math.round(seconds / 60)} minutes`;
-	if (seconds < 86400) return `${Math.round(seconds / 3600)} hours`;
-	if (seconds < 2592000) return `${Math.round(seconds / 86400)} days`;
-	if (seconds < 31536000) return `${Math.round(seconds / 2592000)} months`;
-	return `${Math.round(seconds / 31536000)} years`;
+	if (seconds < 1) return 'Instantly';
+	if (seconds < 60) return 'Seconds';
+	if (seconds < 3600) return 'Minutes';
+	if (seconds < 86400) return 'Hours';
+	if (seconds < 2592000) return 'Days';
+	if (seconds < 31536000) return 'Months';
+	if (seconds < 315360000) return 'Years';
+	return 'Decades';
 }
 
 function updatePasswordDisplay()
