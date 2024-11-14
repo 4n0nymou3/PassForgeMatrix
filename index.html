@@ -670,7 +670,6 @@ function generatePassword(options)
 	const extraSpecialChars = '(){}[]<>,.;:';
 	const ambiguousChars = 'Il1O0';
 	let chars = '';
-	let password = '';
 	if (options.upper) chars += upperChars;
 	if (options.lower) chars += lowerChars;
 	if (options.number) chars += numberChars;
@@ -684,69 +683,52 @@ function generatePassword(options)
 	{
 		chars = upperChars + lowerChars;
 	}
-	const guaranteedChars = [];
-	if (options.upper)
-	{
-		for (let i = 0; i < options.minUpper; i++)
+	let password;
+	let attempts = 0;
+	const maxAttempts = 100;
+	do {
+		let validChars = [...chars];
+		let guaranteedChars = [];
+		if (options.upper)
 		{
-			guaranteedChars.push(upperChars[Math.floor(Math.random() * upperChars.length)]);
-		}
-	}
-	if (options.number)
-	{
-		for (let i = 0; i < options.minNumbers; i++)
-		{
-			guaranteedChars.push(numberChars[Math.floor(Math.random() * numberChars.length)]);
-		}
-	}
-	if (options.special || options.extraSpecial)
-	{
-		const allSpecial = options.extraSpecial ? specialChars + extraSpecialChars : specialChars;
-		for (let i = 0; i < options.minSpecial; i++)
-		{
-			guaranteedChars.push(allSpecial[Math.floor(Math.random() * allSpecial.length)]);
-		}
-	}
-	const remainingLength = options.length - guaranteedChars.length;
-	for (let i = 0; i < remainingLength; i++)
-	{
-		guaranteedChars.push(chars[Math.floor(Math.random() * chars.length)]);
-	}
-	for (let i = guaranteedChars.length - 1; i > 0; i--)
-	{
-		const j = Math.floor(Math.random() * (i + 1));
-                [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
-	}
-	password = guaranteedChars.join('');
-	if (options.noSpecialEnds && (options.special || options.extraSpecial))
-	{
-		const specialPattern = options.extraSpecial ? /^[!@#$%^&*(){}[\]<>,.;:]|[!@#$%^&*(){}[\]<>,.;:]$/ : /^[!@#$%^&*]|[!@#$%^&*]$/;
-		let attempts = 0;
-		const maxAttempts = 100; // برای جلوگیری از حلقه بی‌نهایت
-		while (specialPattern.test(password) && attempts < maxAttempts)
-		{
-			guaranteedChars = Array.from(password);
-			for (let i = guaranteedChars.length - 1; i > 0; i--)
+			for (let i = 0; i < options.minUpper; i++)
 			{
-				const j = Math.floor(Math.random() * (i + 1));
-            [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
+				guaranteedChars.push(upperChars[Math.floor(Math.random() * upperChars.length)]);
 			}
-			password = guaranteedChars.join('');
-			attempts++;
 		}
-	}
-	if (options.noNumberEnds && options.number)
-	{
-		while (/^\d/.test(password) || /\d$/.test(password))
+		if (options.number)
 		{
-			for (let i = guaranteedChars.length - 1; i > 0; i--)
+			for (let i = 0; i < options.minNumbers; i++)
 			{
-				const j = Math.floor(Math.random() * (i + 1));
-            [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
+				guaranteedChars.push(numberChars[Math.floor(Math.random() * numberChars.length)]);
 			}
-			password = guaranteedChars.join('');
 		}
-	}
+		if (options.special || options.extraSpecial)
+		{
+			const allSpecial = (options.special ? specialChars : '') + (options.extraSpecial ? extraSpecialChars : '');
+			for (let i = 0; i < options.minSpecial; i++)
+			{
+				guaranteedChars.push(allSpecial[Math.floor(Math.random() * allSpecial.length)]);
+			}
+		}
+		while (guaranteedChars.length < options.length)
+		{
+			guaranteedChars.push(validChars[Math.floor(Math.random() * validChars.length)]);
+		}
+		for (let i = guaranteedChars.length - 1; i > 0; i--)
+		{
+			const j = Math.floor(Math.random() * (i + 1));
+            [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
+		}
+		password = guaranteedChars.join('');
+		const isSpecialStart = /^[!@#$%^&*(){}[\]<>,.;:]/.test(password);
+		const isSpecialEnd = /[!@#$%^&*(){}[\]<>,.;:]$/.test(password);
+		const isNumberStart = /^\d/.test(password);
+		const isNumberEnd = /\d$/.test(password);
+		const isValid = (!options.noSpecialEnds || (!isSpecialStart && !isSpecialEnd)) && (!options.noNumberEnds || (!isNumberStart && !isNumberEnd));
+		if (isValid) break;
+		attempts++;
+	} while (attempts < maxAttempts);
 	return password;
 }
 
