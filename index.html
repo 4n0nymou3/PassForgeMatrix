@@ -488,6 +488,13 @@ input:checked+.slider-round:before
 					</label>
 				</div>
 				<div class="option">
+					<label>Avoid duplicate characters</label>
+					<label class="toggle-switch">
+						<input type="checkbox" id="avoid-duplicates">
+						<span class="slider-round"></span>
+					</label>
+				</div>
+				<div class="option">
 					<label>Minimum uppercase</label>
 					<div class="number-control">
 						<button class="number-btn" onclick="changeMinValue('min-upper', -1)">-</button>
@@ -638,6 +645,8 @@ function updatePasswordDisplay()
 			.checked
 		, noNumberEnds: document.getElementById('no-number-ends')
 			.checked
+		, avoidDuplicates: document.getElementById('avoid-duplicates')
+			.checked
 	};
 	lengthLabel.textContent = options.length;
 	const newPassword = generatePassword(options);
@@ -686,21 +695,51 @@ function generatePassword(options)
 	let password;
 	let attempts = 0;
 	const maxAttempts = 100;
+	
+	function isValidPassword(pwd)
+	{
+		const isSpecialStart = /^[!@#$%^&*(){}[\]<>,.;:]/.test(pwd);
+		const isSpecialEnd = /[!@#$%^&*(){}[\]<>,.;:]$/.test(pwd);
+		const isNumberStart = /^\d/.test(pwd);
+		const isNumberEnd = /\d$/.test(pwd);
+		if (options.noSpecialEnds && (isSpecialStart || isSpecialEnd)) return false;
+		if (options.noNumberEnds && (isNumberStart || isNumberEnd)) return false;
+		const upperCount = (pwd.match(/[A-Z]/g) || [])
+			.length;
+		const numberCount = (pwd.match(/[0-9]/g) || [])
+			.length;
+		const specialCount = (pwd.match(/[!@#$%^&*(){}[\]<>,.;:]/g) || [])
+			.length;
+		if (options.upper && upperCount < options.minUpper) return false;
+		if (options.number && numberCount < options.minNumbers) return false;
+		if ((options.special || options.extraSpecial) && specialCount < options.minSpecial) return false;
+		return true;
+	}
 	do {
-		let validChars = [...chars];
-		let guaranteedChars = [];
+		let availableChars = [...chars];
+		let passwordChars = [];
 		if (options.upper)
 		{
 			for (let i = 0; i < options.minUpper; i++)
 			{
-				guaranteedChars.push(upperChars[Math.floor(Math.random() * upperChars.length)]);
+				const char = upperChars[Math.floor(Math.random() * upperChars.length)];
+				passwordChars.push(char);
+				if (options.avoidDuplicates)
+				{
+					availableChars = availableChars.filter(c => c !== char);
+				}
 			}
 		}
 		if (options.number)
 		{
 			for (let i = 0; i < options.minNumbers; i++)
 			{
-				guaranteedChars.push(numberChars[Math.floor(Math.random() * numberChars.length)]);
+				const char = numberChars[Math.floor(Math.random() * numberChars.length)];
+				passwordChars.push(char);
+				if (options.avoidDuplicates)
+				{
+					availableChars = availableChars.filter(c => c !== char);
+				}
 			}
 		}
 		if (options.special || options.extraSpecial)
@@ -708,27 +747,37 @@ function generatePassword(options)
 			const allSpecial = (options.special ? specialChars : '') + (options.extraSpecial ? extraSpecialChars : '');
 			for (let i = 0; i < options.minSpecial; i++)
 			{
-				guaranteedChars.push(allSpecial[Math.floor(Math.random() * allSpecial.length)]);
+				const char = allSpecial[Math.floor(Math.random() * allSpecial.length)];
+				passwordChars.push(char);
+				if (options.avoidDuplicates)
+				{
+					availableChars = availableChars.filter(c => c !== char);
+				}
 			}
 		}
-		while (guaranteedChars.length < options.length)
+		while (passwordChars.length < options.length && availableChars.length > 0)
 		{
-			guaranteedChars.push(validChars[Math.floor(Math.random() * validChars.length)]);
+			const randomIndex = Math.floor(Math.random() * availableChars.length);
+			const char = availableChars[randomIndex];
+			passwordChars.push(char);
+			if (options.avoidDuplicates)
+			{
+				availableChars.splice(randomIndex, 1);
+			}
 		}
-		for (let i = guaranteedChars.length - 1; i > 0; i--)
+		while (passwordChars.length < options.length)
+		{
+			const randomIndex = Math.floor(Math.random() * chars.length);
+			passwordChars.push(chars[randomIndex]);
+		}
+		for (let i = passwordChars.length - 1; i > 0; i--)
 		{
 			const j = Math.floor(Math.random() * (i + 1));
-            [guaranteedChars[i], guaranteedChars[j]] = [guaranteedChars[j], guaranteedChars[i]];
+            [passwordChars[i], passwordChars[j]] = [passwordChars[j], passwordChars[i]];
 		}
-		password = guaranteedChars.join('');
-		const isSpecialStart = /^[!@#$%^&*(){}[\]<>,.;:]/.test(password);
-		const isSpecialEnd = /[!@#$%^&*(){}[\]<>,.;:]$/.test(password);
-		const isNumberStart = /^\d/.test(password);
-		const isNumberEnd = /\d$/.test(password);
-		const isValid = (!options.noSpecialEnds || (!isSpecialStart && !isSpecialEnd)) && (!options.noNumberEnds || (!isNumberStart && !isNumberEnd));
-		if (isValid) break;
+		password = passwordChars.join('');
 		attempts++;
-	} while (attempts < maxAttempts);
+	} while (!isValidPassword(password) && attempts < maxAttempts);
 	return password;
 }
 
@@ -758,7 +807,7 @@ document.addEventListener('DOMContentLoaded', () =>
 	const elements = [
                 'password-length', 'upper', 'lower', 'number'
                 , 'special', 'extra-special', 'ambiguous', 'min-upper'
-                , 'min-numbers', 'min-special', 'no-special-ends', 'no-number-ends'
+                , 'min-numbers', 'min-special', 'no-special-ends', 'no-number-ends', 'avoid-duplicates'
             ];
 	elements.forEach(id =>
 	{
@@ -780,6 +829,7 @@ document.addEventListener('DOMContentLoaded', () =>
 		, 'min-special': 'Minimum number of special characters'
 		, 'no-special-ends': 'Avoid special characters at start and end of password'
 		, 'no-number-ends': 'Avoid numbers at start and end of password'
+		, 'avoid-duplicates': 'Try to avoid duplicate characters when possible'
 	};
 	for (const [id, content] of Object.entries(tooltips))
 	{
