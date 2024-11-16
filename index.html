@@ -566,33 +566,67 @@ function calculatePasswordStrength(password)
 {
 	let score = 0;
 	const length = password.length;
-	if (length < 8) score += 10;
-	else if (length < 10) score += 20;
-	else if (length < 12) score += 30;
-	else if (length < 14) score += 40;
-	else score += 50;
+	if (length < 8) score += 5;
+	else if (length < 10) score += 15;
+	else if (length < 12) score += 25;
+	else if (length < 14) score += 35;
+	else if (length < 16) score += 45;
+	else if (length < 20) score += 55;
+	else score += 65;
 	const hasUpper = /[A-Z]/.test(password);
 	const hasLower = /[a-z]/.test(password);
 	const hasNumber = /\d/.test(password);
-	const hasSpecial = /[!@#$%^&*(){}[\]<>,.;:]/.test(password);
-	if (hasUpper) score += 10;
-	if (hasLower) score += 10;
-	if (hasNumber) score += 10;
-	if (hasSpecial) score += 10;
-	let complexityCount = [hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean)
+	const hasSpecial = /[!@#$%^&*]/.test(password);
+	const hasExtraSpecial = /[(){}[\]<>,.;:]/.test(password);
+	if (hasUpper) score += 8;
+	if (hasLower) score += 8;
+	if (hasNumber) score += 8;
+	if (hasSpecial) score += 8;
+	if (hasExtraSpecial) score += 8;
+	const complexityCount = [hasUpper, hasLower, hasNumber, hasSpecial, hasExtraSpecial].filter(Boolean)
 		.length;
-	score += complexityCount * 5;
+	score += complexityCount * 4;
 	const uniqueChars = new Set(password)
 		.size;
-	score += Math.min(uniqueChars * 2, 20);
-	if (/(.)\1{2,}/.test(password)) score -= 10;
-	if (/^[a-zA-Z]+$/.test(password)) score -= 10;
-	if (/^\d+$/.test(password)) score -= 10;
-	const strength = Math.max(0, Math.min(100, score));
+	const uniqueRatio = uniqueChars / length;
+	score += Math.min(uniqueRatio * 15, 15);
+	if (/(.)\1{2,}/.test(password)) score -= 15;
+	if (/^[a-zA-Z]+$/.test(password)) score -= 20;
+	if (/^\d+$/.test(password)) score -= 25;
+	if (/^[a-z]+$/.test(password)) score -= 25;
+	if (/^[A-Z]+$/.test(password)) score -= 25;
+	if (/^[!@#$%^&*(){}[\]<>,.;:]+$/.test(password)) score -= 25;
+	const finalScore = Math.max(0, Math.min(100, score));
+	let text, color;
+	if (finalScore < 20)
+	{
+		text = 'Very Weak';
+		color = '#ff0000';
+	}
+	else if (finalScore < 40)
+	{
+		text = 'Weak';
+		color = '#ff4500';
+	}
+	else if (finalScore < 60)
+	{
+		text = 'Moderate';
+		color = '#ffa500';
+	}
+	else if (finalScore < 80)
+	{
+		text = 'Strong';
+		color = '#9acd32';
+	}
+	else
+	{
+		text = 'Very Strong';
+		color = '#008000';
+	}
 	return {
-		score: strength
-		, text: strength < 40 ? 'Weak' : strength < 70 ? 'Moderate' : 'Strong'
-		, color: strength < 40 ? '#f44336' : strength < 70 ? '#ff9800' : '#4CAF50'
+		score: finalScore
+		, text
+		, color
 	};
 }
 
