@@ -18,7 +18,7 @@ PassForgeMatrix Pro is a customizable and advanced password generator designed t
 ## Installation
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/PassForgeMatrix.git
+   git clone https://github.com/4n0nymou3/PassForgeMatrix.git
    ```
 2. Open the `index.html` file in your browser.
 
