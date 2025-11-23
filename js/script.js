@@ -1,372 +1,687 @@
-let currentFontSize = 1;
-function changeFontSize(delta)
-{
-	currentFontSize = Math.max(0.8, Math.min(1.5, currentFontSize + delta));
-	document.querySelector('.password-display').style.setProperty('--password-font-size', `${currentFontSize}em`);
+let currentPassword = '';
+let passwordHistory = [];
+let minValues = {
+    uppercase: 1,
+    numbers: 1,
+    special: 1
+};
+
+const PRESETS = {
+    memorable: {
+        length: 12,
+        uppercase: true,
+        lowercase: true,
+        numbers: true,
+        special: false,
+        extraSpecial: false,
+        excludeAmbiguous: true,
+        noDuplicates: false,
+        noSequential: false,
+        noNumbersEnds: false,
+        noSpecialEnds: false
+    },
+    strong: {
+        length: 16,
+        uppercase: true,
+        lowercase: true,
+        numbers: true,
+        special: true,
+        extraSpecial: false,
+        excludeAmbiguous: true,
+        noDuplicates: false,
+        noSequential: false,
+        noNumbersEnds: false,
+        noSpecialEnds: false
+    },
+    maximum: {
+        length: 32,
+        uppercase: true,
+        lowercase: true,
+        numbers: true,
+        special: true,
+        extraSpecial: true,
+        excludeAmbiguous: false,
+        noDuplicates: true,
+        noSequential: true,
+        noNumbersEnds: false,
+        noSpecialEnds: false
+    },
+    pin: {
+        length: 6,
+        uppercase: false,
+        lowercase: false,
+        numbers: true,
+        special: false,
+        extraSpecial: false,
+        excludeAmbiguous: true,
+        noDuplicates: false,
+        noSequential: true,
+        noNumbersEnds: false,
+        noSpecialEnds: false
+    },
+    wifi: {
+        length: 20,
+        uppercase: true,
+        lowercase: true,
+        numbers: true,
+        special: true,
+        extraSpecial: false,
+        excludeAmbiguous: true,
+        noDuplicates: false,
+        noSequential: false,
+        noNumbersEnds: true,
+        noSpecialEnds: true
+    },
+    database: {
+        length: 24,
+        uppercase: true,
+        lowercase: true,
+        numbers: true,
+        special: true,
+        extraSpecial: true,
+        excludeAmbiguous: false,
+        noDuplicates: true,
+        noSequential: false,
+        noNumbersEnds: false,
+        noSpecialEnds: false
+    }
+};
+
+function init() {
+    loadFromStorage();
+    setupEventListeners();
+    updateHistoryDisplay();
+    generatePassword();
 }
-function toggleTheme()
-{
-	const body = document.body;
-	const currentTheme = body.getAttribute('data-theme') || 'dark';
-	const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-	body.setAttribute('data-theme', newTheme);
-	localStorage.setItem('theme', newTheme);
+
+function loadFromStorage() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.body.setAttribute('data-theme', savedTheme);
+    
+    const savedHistory = localStorage.getItem('passwordHistory');
+    if (savedHistory) {
+        try {
+            passwordHistory = JSON.parse(savedHistory);
+        } catch (e) {
+            passwordHistory = [];
+        }
+    }
 }
-function calculatePasswordStrength(password)
-{
-	let score = 0;
-	const length = password.length;
-	if (length < 8) score += 5;
-	else if (length < 10) score += 15;
-	else if (length < 12) score += 25;
-	else if (length < 14) score += 35;
-	else if (length < 16) score += 45;
-	else if (length < 20) score += 55;
-	else score += 65;
-	const hasUpper = /[A-Z]/.test(password);
-	const hasLower = /[a-z]/.test(password);
-	const hasNumber = /\d/.test(password);
-	const hasSpecial = /[!@#$%^&*]/.test(password);
-	const hasExtraSpecial = /[(){}[\]<>,.;:]/.test(password);
-	if (hasUpper) score += 8;
-	if (hasLower) score += 8;
-	if (hasNumber) score += 8;
-	if (hasSpecial) score += 8;
-	if (hasExtraSpecial) score += 8;
-	const complexityCount = [hasUpper, hasLower, hasNumber, hasSpecial, hasExtraSpecial].filter(Boolean).length;
-	score += complexityCount * 4;
-	const uniqueChars = new Set(password).size;
-	const uniqueRatio = uniqueChars / length;
-	score += Math.min(uniqueRatio * 15, 15);
-	if (/(.)\1{2,}/.test(password)) score -= 15;
-	if (/^[a-zA-Z]+$/.test(password)) score -= 20;
-	if (/^\d+$/.test(password)) score -= 25;
-	if (/^[a-z]+$/.test(password)) score -= 25;
-	if (/^[A-Z]+$/.test(password)) score -= 25;
-	if (/^[!@#$%^&*(){}[\]<>,.;:]+$/.test(password)) score -= 25;
-	const finalScore = Math.max(0, Math.min(100, score));
-	let text, color;
-	if (finalScore < 20)
-	{
-		text = 'Very Weak';
-		color = '#ff0000';
-	}
-	else if (finalScore < 40)
-	{
-		text = 'Weak';
-		color = '#ff4500';
-	}
-	else if (finalScore < 60)
-	{
-		text = 'Moderate';
-		color = '#ffa500';
-	}
-	else if (finalScore < 80)
-	{
-		text = 'Strong';
-		color = '#9acd32';
-	}
-	else
-	{
-		text = 'Very Strong';
-		color = '#008000';
-	}
-	return {score: finalScore, text, color};
+
+function setupEventListeners() {
+    document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+    document.getElementById('generate-btn').addEventListener('click', generatePassword);
+    document.getElementById('copy-btn').addEventListener('click', copyPassword);
+    document.getElementById('length-slider').addEventListener('input', updateLength);
+    document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
+    
+    const checkboxes = ['uppercase', 'lowercase', 'numbers', 'special', 'extra-special', 'exclude-ambiguous', 'no-duplicates', 'no-sequential', 'no-numbers-ends', 'no-special-ends'];
+    checkboxes.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', handleCheckboxChange);
+        }
+    });
+    
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            switchTab(this.dataset.tab);
+        });
+    });
+    
+    document.querySelectorAll('.number-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const target = this.dataset.target;
+            const action = this.dataset.action;
+            changeMinValue(target, action === 'increase' ? 1 : -1);
+        });
+    });
+    
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            applyPreset(this.dataset.preset);
+        });
+    });
 }
-function estimateCrackTime(password)
-{
-	const guessesPerSecond = 1000000000000;
-	let possibleChars = 0;
-	if (/[a-z]/.test(password)) possibleChars += 26;
-	if (/[A-Z]/.test(password)) possibleChars += 26;
-	if (/\d/.test(password)) possibleChars += 10;
-	if (/[!@#$%^&*(){}[\]<>,.;:]/.test(password)) possibleChars += 30;
-	const combinations = Math.pow(Math.max(possibleChars, 26), password.length);
-	const seconds = combinations / guessesPerSecond;
-	if (seconds < 1) return 'Instantly';
-	if (seconds < 60) return 'Seconds';
-	if (seconds < 3600) return 'Minutes';
-	if (seconds < 86400) return 'Hours';
-	if (seconds < 2592000) return 'Days';
-	if (seconds < 31536000) return 'Months';
-	if (seconds < 315360000) return 'Years';
-	return 'Decades';
+
+function toggleTheme() {
+    const body = document.body;
+    const currentTheme = body.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
 }
-function updatePasswordDisplay()
-{
-	const passwordDisplay = document.getElementById('password-display');
-	const lengthSlider = document.getElementById('password-length');
-	const lengthLabel = document.getElementById('password-length-label');
-	const options = {
-		length: parseInt(lengthSlider.value, 10),
-		upper: document.getElementById('upper').checked,
-		lower: document.getElementById('lower').checked,
-		number: document.getElementById('number').checked,
-		special: document.getElementById('special').checked,
-		extraSpecial: document.getElementById('extra-special').checked,
-		ambiguous: document.getElementById('ambiguous').checked,
-		minUpper: parseInt(document.getElementById('min-upper').value, 10),
-		minNumbers: parseInt(document.getElementById('min-numbers').value, 10),
-		minSpecial: parseInt(document.getElementById('min-special').value, 10),
-		noSpecialEnds: document.getElementById('no-special-ends').checked,
-		noNumberEnds: document.getElementById('no-number-ends').checked,
-		avoidDuplicates: document.getElementById('avoid-duplicates').checked
-	};
-	lengthLabel.textContent = options.length;
-	const newPassword = generatePassword(options);
-	passwordDisplay.classList.add('generating');
-	setTimeout(() => passwordDisplay.classList.remove('generating'), 300);
-	const strengthResult = calculatePasswordStrength(newPassword);
-	const strengthBar = document.getElementById('strength-bar');
-	const strengthText = document.getElementById('strength-text');
-	const crackTime = document.getElementById('crack-time');
-	strengthBar.style.width = `${strengthResult.score}%`;
-	strengthBar.style.backgroundColor = strengthResult.color;
-	strengthText.textContent = strengthResult.text;
-	crackTime.textContent = `Crack time: ${estimateCrackTime(newPassword)}`;
-	passwordDisplay.innerHTML = Array.from(newPassword).map(char => {
-		if (/\d/.test(char)) return `<span style="color:red">${char}</span>`;
-		if (/[!@#$%^&*(){}[\]<>,.;:]/.test(char)) return `<span style="color:#007acc">${char}</span>`;
-		return `<span style="color:inherit">${char}</span>`;
-	}).join('');
+
+function switchTab(tabName) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById(`${tabName}-tab`).classList.add('active');
 }
-function generatePassword(options)
-{
-	const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-	const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
-	const numberChars = '0123456789';
-	const specialChars = '!@#$%^&*';
-	const extraSpecialChars = '(){}[]<>,.;:';
-	const ambiguousChars = 'Il1O0';
-	let chars = '';
-	if (options.upper) chars += upperChars;
-	if (options.lower) chars += lowerChars;
-	if (options.number) chars += numberChars;
-	if (options.special) chars += specialChars;
-	if (options.extraSpecial) chars += extraSpecialChars;
-	if (options.ambiguous)
-	{
-		chars = chars.replace(new RegExp(`[${ambiguousChars}]`, 'g'), '');
-	}
-	if (!chars)
-	{
-		chars = upperChars + lowerChars;
-	}
-	let password;
-	let attempts = 0;
-	const maxAttempts = 100;
-	function isValidPassword(pwd)
-	{
-		const isSpecialStart = /^[!@#$%^&*(){}[\]<>,.;:]/.test(pwd);
-		const isSpecialEnd = /[!@#$%^&*(){}[\]<>,.;:]$/.test(pwd);
-		const isNumberStart = /^\d/.test(pwd);
-		const isNumberEnd = /\d$/.test(pwd);
-		if (options.noSpecialEnds && (isSpecialStart || isSpecialEnd)) return false;
-		if (options.noNumberEnds && (isNumberStart || isNumberEnd)) return false;
-		const upperCount = (pwd.match(/[A-Z]/g) || []).length;
-		const numberCount = (pwd.match(/[0-9]/g) || []).length;
-		const specialCount = (pwd.match(/[!@#$%^&*(){}[\]<>,.;:]/g) || []).length;
-		if (options.upper && upperCount < options.minUpper) return false;
-		if (options.number && numberCount < options.minNumbers) return false;
-		if ((options.special || options.extraSpecial) && specialCount < options.minSpecial) return false;
-		return true;
-	}
-	do {
-		let availableChars = [...chars];
-		let passwordChars = [];
-		if (options.upper)
-		{
-			for (let i = 0; i < options.minUpper; i++)
-			{
-				const char = upperChars[Math.floor(Math.random() * upperChars.length)];
-				passwordChars.push(char);
-				if (options.avoidDuplicates)
-				{
-					availableChars = availableChars.filter(c => c !== char);
-				}
-			}
-		}
-		if (options.number)
-		{
-			for (let i = 0; i < options.minNumbers; i++)
-			{
-				const char = numberChars[Math.floor(Math.random() * numberChars.length)];
-				passwordChars.push(char);
-				if (options.avoidDuplicates)
-				{
-					availableChars = availableChars.filter(c => c !== char);
-				}
-			}
-		}
-		if (options.special || options.extraSpecial)
-		{
-			const allSpecial = (options.special ? specialChars : '') + (options.extraSpecial ? extraSpecialChars : '');
-			for (let i = 0; i < options.minSpecial; i++)
-			{
-				const char = allSpecial[Math.floor(Math.random() * allSpecial.length)];
-				passwordChars.push(char);
-				if (options.avoidDuplicates)
-				{
-					availableChars = availableChars.filter(c => c !== char);
-				}
-			}
-		}
-		while (passwordChars.length < options.length && availableChars.length > 0)
-		{
-			const randomIndex = Math.floor(Math.random() * availableChars.length);
-			const char = availableChars[randomIndex];
-			passwordChars.push(char);
-			if (options.avoidDuplicates)
-			{
-				availableChars.splice(randomIndex, 1);
-			}
-		}
-		while (passwordChars.length < options.length)
-		{
-			const randomIndex = Math.floor(Math.random() * chars.length);
-			passwordChars.push(chars[randomIndex]);
-		}
-		for (let i = passwordChars.length - 1; i > 0; i--)
-		{
-			const j = Math.floor(Math.random() * (i + 1));
-			[passwordChars[i], passwordChars[j]] = [passwordChars[j], passwordChars[i]];
-		}
-		password = passwordChars.join('');
-		attempts++;
-	} while (!isValidPassword(password) && attempts < maxAttempts);
-	return password;
+
+function updateLength() {
+    const length = parseInt(document.getElementById('length-slider').value);
+    document.getElementById('length-value').textContent = length;
+    adjustMinValuesBasedOnLength(length);
+    generatePassword();
 }
-function copyToClipboard()
-{
-	const passwordDisplay = document.getElementById('password-display');
-	const password = passwordDisplay.textContent;
-	navigator.clipboard.writeText(password).then(() => {
-		const copySuccess = document.getElementById('copy-success');
-		copySuccess.textContent = 'Password copied to clipboard!';
-		copySuccess.classList.add('show');
-		setTimeout(() => copySuccess.classList.remove('show'), 2000);
-	});
+
+function adjustMinValuesBasedOnLength(length) {
+    const maxAllowed = Math.floor(length / 3);
+    
+    const minUppercase = document.getElementById('min-uppercase');
+    const minNumbers = document.getElementById('min-numbers');
+    const minSpecial = document.getElementById('min-special');
+    
+    if (parseInt(minUppercase.textContent) > maxAllowed) {
+        minUppercase.textContent = maxAllowed;
+        minValues.uppercase = maxAllowed;
+    }
+    
+    if (parseInt(minNumbers.textContent) > maxAllowed) {
+        minNumbers.textContent = maxAllowed;
+        minValues.numbers = maxAllowed;
+    }
+    
+    if (parseInt(minSpecial.textContent) > maxAllowed) {
+        minSpecial.textContent = maxAllowed;
+        minValues.special = maxAllowed;
+    }
+    
+    updateButtonStates();
 }
-document.addEventListener('DOMContentLoaded', () => {
-	const savedTheme = localStorage.getItem('theme') || 'dark';
-	document.body.setAttribute('data-theme', savedTheme);
-	const lengthSlider = document.getElementById('password-length');
-	const lengthLabel = document.getElementById('password-length-label');
-	lengthSlider.addEventListener('input', () => {
-		lengthLabel.textContent = lengthSlider.value;
-	});
-	const elements = [
-		'password-length', 'upper', 'lower', 'number',
-		'special', 'extra-special', 'ambiguous', 'min-upper',
-		'min-numbers', 'min-special', 'no-special-ends', 'no-number-ends', 'avoid-duplicates'
-	];
-	elements.forEach(id => {
-		const element = document.getElementById(id);
-		if (element)
-		{
-			element.addEventListener('change', updatePasswordDisplay);
-		}
-	});
-	const tooltips = {
-		'upper': 'Include uppercase letters (A-Z)',
-		'lower': 'Include lowercase letters (a-z)',
-		'number': 'Include numbers (0-9)',
-		'special': 'Include special characters (!@#$%^&*)',
-		'extra-special': 'Include extra special characters ((){}[]<>,.;:)',
-		'ambiguous': 'Exclude similar-looking characters (Il1O0)',
-		'min-upper': 'Minimum number of uppercase letters',
-		'min-numbers': 'Minimum number of numbers',
-		'min-special': 'Minimum number of special characters',
-		'no-special-ends': 'Avoid special characters at start and end of password',
-		'no-number-ends': 'Avoid numbers at start and end of password',
-		'avoid-duplicates': 'Try to avoid duplicate characters when possible'
-	};
-	for (const [id, content] of Object.entries(tooltips))
-	{
-		const element = document.getElementById(id);
-		if (element)
-		{
-			tippy(element.closest('.option'), {
-				content,
-				placement: 'right'
-			});
-		}
-	}
-	updatePasswordDisplay();
-});
-document.getElementById('upper').addEventListener('change', function(e)
-{
-	const lowerCheckbox = document.getElementById('lower');
-	if (!e.target.checked && !lowerCheckbox.checked)
-	{
-		e.target.checked = true;
-		alert('At least one of A-Z or a-z must be enabled!');
-	}
-});
-document.getElementById('lower').addEventListener('change', function(e)
-{
-	const upperCheckbox = document.getElementById('upper');
-	if (!e.target.checked && !upperCheckbox.checked)
-	{
-		e.target.checked = true;
-		alert('At least one of A-Z or a-z must be enabled!');
-	}
-});
-document.getElementById('password-length').addEventListener('input', function()
-{
-	const maxAllowed = Math.floor(this.value / 4);
-	['min-upper', 'min-numbers', 'min-special'].forEach(id => {
-		const input = document.getElementById(id);
-		if (parseInt(input.value) > maxAllowed)
-		{
-			input.value = maxAllowed;
-		}
-	});
-});
-document.getElementById('number').addEventListener('change', function(e)
-{
-	const noNumberEndsCheckbox = document.getElementById('no-number-ends');
-	if (e.target.checked)
-	{
-		noNumberEndsCheckbox.disabled = false;
-	}
-	else
-	{
-		noNumberEndsCheckbox.disabled = true;
-		noNumberEndsCheckbox.checked = false;
-	}
-});
-function updateNoSpecialEndsState()
-{
-	const specialCheckbox = document.getElementById('special');
-	const extraSpecialCheckbox = document.getElementById('extra-special');
-	const noSpecialEndsCheckbox = document.getElementById('no-special-ends');
-	if (!specialCheckbox.checked && !extraSpecialCheckbox.checked)
-	{
-		noSpecialEndsCheckbox.disabled = true;
-		noSpecialEndsCheckbox.checked = false;
-	}
-	else
-	{
-		noSpecialEndsCheckbox.disabled = false;
-	}
+
+function updateButtonStates() {
+    const length = parseInt(document.getElementById('length-slider').value);
+    const maxAllowed = Math.floor(length / 3);
+    
+    const minIds = ['min-uppercase', 'min-numbers', 'min-special'];
+    
+    minIds.forEach(id => {
+        const element = document.getElementById(id);
+        const currentValue = parseInt(element.textContent);
+        
+        const decreaseBtn = document.querySelector(`[data-target="${id}"][data-action="decrease"]`);
+        const increaseBtn = document.querySelector(`[data-target="${id}"][data-action="increase"]`);
+        
+        if (decreaseBtn) {
+            decreaseBtn.disabled = currentValue <= 0;
+        }
+        
+        if (increaseBtn) {
+            increaseBtn.disabled = currentValue >= maxAllowed;
+        }
+    });
 }
-document.getElementById('special').addEventListener('change', updateNoSpecialEndsState);
-document.getElementById('extra-special').addEventListener('change', updateNoSpecialEndsState);
-document.addEventListener('DOMContentLoaded', function()
-{
-	updateNoSpecialEndsState();
-});
-function changeMinValue(id, delta)
-{
-	const input = document.getElementById(id);
-	const currentValue = parseInt(input.value);
-	const passwordLength = parseInt(document.getElementById('password-length').value);
-	const maxAllowed = Math.floor(passwordLength / 4);
-	const newValue = currentValue + delta;
-	if (newValue >= 1 && newValue <= maxAllowed)
-	{
-		input.value = newValue;
-		updatePasswordDisplay();
-	}
+
+function changeMinValue(id, delta) {
+    const element = document.getElementById(id);
+    const current = parseInt(element.textContent);
+    const length = parseInt(document.getElementById('length-slider').value);
+    const maxAllowed = Math.floor(length / 3);
+    const newValue = Math.max(0, Math.min(maxAllowed, current + delta));
+    
+    element.textContent = newValue;
+    minValues[id.replace('min-', '')] = newValue;
+    
+    updateButtonStates();
+    generatePassword();
 }
+
+function handleCheckboxChange(event) {
+    const uppercase = document.getElementById('uppercase').checked;
+    const lowercase = document.getElementById('lowercase').checked;
+    
+    if (event.target.id === 'uppercase' || event.target.id === 'lowercase') {
+        if (!uppercase && !lowercase) {
+            event.target.checked = true;
+            showToast('At least one letter type must be selected!', 'warning');
+            return;
+        }
+    }
+    
+    generatePassword();
+}
+
+function generatePassword() {
+    const length = parseInt(document.getElementById('length-slider').value);
+    
+    const options = {
+        length: length,
+        uppercase: document.getElementById('uppercase').checked,
+        lowercase: document.getElementById('lowercase').checked,
+        numbers: document.getElementById('numbers').checked,
+        special: document.getElementById('special').checked,
+        extraSpecial: document.getElementById('extra-special')?.checked || false,
+        excludeAmbiguous: document.getElementById('exclude-ambiguous')?.checked || false,
+        noDuplicates: document.getElementById('no-duplicates')?.checked || false,
+        noSequential: document.getElementById('no-sequential')?.checked || false,
+        noNumbersEnds: document.getElementById('no-numbers-ends')?.checked || false,
+        noSpecialEnds: document.getElementById('no-special-ends')?.checked || false,
+        minUppercase: minValues.uppercase,
+        minNumbers: minValues.numbers,
+        minSpecial: minValues.special
+    };
+    
+    if (!options.uppercase && !options.lowercase) {
+        options.uppercase = true;
+        document.getElementById('uppercase').checked = true;
+    }
+    
+    const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
+    const numberChars = '0123456789';
+    const specialChars = '!@#$%^&*';
+    const extraSpecialChars = '(){}[]<>,.;:';
+    const ambiguousChars = 'Il1O0';
+    
+    let charset = '';
+    if (options.uppercase) charset += upperChars;
+    if (options.lowercase) charset += lowerChars;
+    if (options.numbers) charset += numberChars;
+    if (options.special) charset += specialChars;
+    if (options.extraSpecial) charset += extraSpecialChars;
+    
+    if (options.excludeAmbiguous) {
+        charset = charset.split('').filter(c => !ambiguousChars.includes(c)).join('');
+    }
+    
+    if (!charset) {
+        charset = upperChars + lowerChars;
+    }
+    
+    const totalMinRequired = 
+        (options.uppercase ? options.minUppercase : 0) +
+        (options.numbers ? options.minNumbers : 0) +
+        ((options.special || options.extraSpecial) ? options.minSpecial : 0);
+    
+    if (totalMinRequired > length) {
+        showToast('Password length is too short for minimum requirements!', 'error');
+        return;
+    }
+    
+    let password = '';
+    let attempts = 0;
+    const maxAttempts = 100;
+    
+    do {
+        password = buildPassword(charset, length, options, upperChars, lowerChars, numberChars, specialChars, extraSpecialChars);
+        attempts++;
+    } while (!isValidPassword(password, options) && attempts < maxAttempts);
+    
+    currentPassword = password;
+    displayPassword(password);
+    updateStrengthIndicator(password, charset.length, length);
+    addToHistory(password);
+}
+
+function buildPassword(charset, length, options, upperChars, lowerChars, numberChars, specialChars, extraSpecialChars) {
+    let passwordArray = [];
+    let availableChars = charset.split('');
+    
+    if (options.uppercase && options.minUppercase > 0) {
+        for (let i = 0; i < options.minUppercase; i++) {
+            const char = upperChars[getRandomInt(0, upperChars.length - 1)];
+            passwordArray.push(char);
+            if (options.noDuplicates) {
+                availableChars = availableChars.filter(c => c !== char);
+            }
+        }
+    }
+    
+    if (options.numbers && options.minNumbers > 0) {
+        for (let i = 0; i < options.minNumbers; i++) {
+            const char = numberChars[getRandomInt(0, numberChars.length - 1)];
+            passwordArray.push(char);
+            if (options.noDuplicates) {
+                availableChars = availableChars.filter(c => c !== char);
+            }
+        }
+    }
+    
+    if ((options.special || options.extraSpecial) && options.minSpecial > 0) {
+        const allSpecial = (options.special ? specialChars : '') + (options.extraSpecial ? extraSpecialChars : '');
+        for (let i = 0; i < options.minSpecial; i++) {
+            const char = allSpecial[getRandomInt(0, allSpecial.length - 1)];
+            passwordArray.push(char);
+            if (options.noDuplicates) {
+                availableChars = availableChars.filter(c => c !== char);
+            }
+        }
+    }
+    
+    while (passwordArray.length < length) {
+        if (availableChars.length === 0) {
+            if (options.noDuplicates) {
+                availableChars = charset.split('');
+            } else {
+                break;
+            }
+        }
+        
+        const randomIndex = getRandomInt(0, availableChars.length - 1);
+        const char = availableChars[randomIndex];
+        passwordArray.push(char);
+        
+        if (options.noDuplicates) {
+            availableChars.splice(randomIndex, 1);
+        }
+    }
+    
+    while (passwordArray.length < length) {
+        const randomIndex = getRandomInt(0, charset.length - 1);
+        passwordArray.push(charset[randomIndex]);
+    }
+    
+    for (let i = passwordArray.length - 1; i > 0; i--) {
+        const j = getRandomInt(0, i);
+        [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
+    }
+    
+    return passwordArray.join('');
+}
+
+function isValidPassword(password, options) {
+    if (options.noSequential) {
+        for (let i = 0; i < password.length - 2; i++) {
+            const char1 = password.charCodeAt(i);
+            const char2 = password.charCodeAt(i + 1);
+            const char3 = password.charCodeAt(i + 2);
+            
+            if (char2 === char1 + 1 && char3 === char2 + 1) {
+                return false;
+            }
+            if (char2 === char1 - 1 && char3 === char2 - 1) {
+                return false;
+            }
+        }
+    }
+    
+    if (options.noNumbersEnds && password.length > 0) {
+        const firstChar = password[0];
+        const lastChar = password[password.length - 1];
+        if (/[0-9]/.test(firstChar) || /[0-9]/.test(lastChar)) {
+            return false;
+        }
+    }
+    
+    if (options.noSpecialEnds && password.length > 0) {
+        const firstChar = password[0];
+        const lastChar = password[password.length - 1];
+        if (/[!@#$%^&*(){}[\]<>,.;:]/.test(firstChar) || /[!@#$%^&*(){}[\]<>,.;:]/.test(lastChar)) {
+            return false;
+        }
+    }
+    
+    if (options.uppercase) {
+        const upperCount = (password.match(/[A-Z]/g) || []).length;
+        if (upperCount < options.minUppercase) return false;
+    }
+    
+    if (options.numbers) {
+        const numberCount = (password.match(/[0-9]/g) || []).length;
+        if (numberCount < options.minNumbers) return false;
+    }
+    
+    if (options.special || options.extraSpecial) {
+        const specialCount = (password.match(/[!@#$%^&*(){}[\]<>,.;:]/g) || []).length;
+        if (specialCount < options.minSpecial) return false;
+    }
+    
+    return true;
+}
+
+function getRandomInt(min, max) {
+    const randomBuffer = new Uint32Array(1);
+    window.crypto.getRandomValues(randomBuffer);
+    const randomNumber = randomBuffer[0] / (0xffffffff + 1);
+    return Math.floor(randomNumber * (max - min + 1)) + min;
+}
+
+function displayPassword(password) {
+    const display = document.getElementById('password-display');
+    
+    const coloredPassword = password.split('').map(char => {
+        if (/[A-Z]/.test(char)) {
+            return `<span style="color: #ff6b35; font-weight: 700;">${char}</span>`;
+        } else if (/[a-z]/.test(char)) {
+            return `<span style="color: #4ecdc4; font-weight: 700;">${char}</span>`;
+        } else if (/[0-9]/.test(char)) {
+            return `<span style="color: #ffd93d; font-weight: 700;">${char}</span>`;
+        } else if (/[!@#$%^&*(){}[\]<>,.;:]/.test(char)) {
+            return `<span style="color: #c77dff; font-weight: 700;">${char}</span>`;
+        } else {
+            return `<span style="font-weight: 700;">${char}</span>`;
+        }
+    }).join('');
+    
+    display.innerHTML = coloredPassword;
+}
+
+function updateStrengthIndicator(password, charsetSize, length) {
+    const entropy = Math.log2(Math.pow(charsetSize, length));
+    const score = calculateStrengthScore(password, entropy);
+    
+    const strengthBar = document.getElementById('strength-bar');
+    const strengthText = document.getElementById('strength-text');
+    const crackTime = document.getElementById('crack-time');
+    const entropyValue = document.getElementById('entropy-value');
+    const combinations = document.getElementById('combinations');
+    
+    let color, text;
+    if (score < 20) {
+        color = '#ef4444';
+        text = 'Very Weak';
+    } else if (score < 40) {
+        color = '#f59e0b';
+        text = 'Weak';
+    } else if (score < 60) {
+        color = '#eab308';
+        text = 'Moderate';
+    } else if (score < 80) {
+        color = '#22c55e';
+        text = 'Strong';
+    } else {
+        color = '#10b981';
+        text = 'Very Strong';
+    }
+    
+    strengthBar.style.width = `${score}%`;
+    strengthBar.style.backgroundColor = color;
+    strengthText.textContent = text;
+    strengthText.style.color = color;
+    
+    const crackTimeText = estimateCrackTime(entropy);
+    crackTime.textContent = `Crack Time: ${crackTimeText}`;
+    
+    entropyValue.textContent = `${Math.round(entropy)} bits`;
+    
+    const totalCombinations = Math.pow(charsetSize, length);
+    if (totalCombinations > 1e15) {
+        combinations.textContent = `${(totalCombinations / 1e15).toFixed(2)}Q`;
+    } else if (totalCombinations > 1e12) {
+        combinations.textContent = `${(totalCombinations / 1e12).toFixed(2)}T`;
+    } else if (totalCombinations > 1e9) {
+        combinations.textContent = `${(totalCombinations / 1e9).toFixed(2)}B`;
+    } else if (totalCombinations > 1e6) {
+        combinations.textContent = `${(totalCombinations / 1e6).toFixed(2)}M`;
+    } else {
+        combinations.textContent = totalCombinations.toLocaleString();
+    }
+}
+
+function calculateStrengthScore(password, entropy) {
+    let score = 0;
+    
+    if (entropy < 28) score = 10;
+    else if (entropy < 36) score = 20;
+    else if (entropy < 60) score = 40;
+    else if (entropy < 80) score = 60;
+    else if (entropy < 100) score = 80;
+    else score = 95;
+    
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*(){}[\]<>,.;:]/.test(password);
+    
+    const variety = [hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
+    score += variety * 2;
+    
+    const uniqueChars = new Set(password).size;
+    const uniqueRatio = uniqueChars / password.length;
+    score += uniqueRatio * 5;
+    
+    if (/(.)\1{2,}/.test(password)) score -= 10;
+    if (/^[a-zA-Z]+$/.test(password)) score -= 10;
+    if (/^\d+$/.test(password)) score -= 15;
+    
+    return Math.max(0, Math.min(100, score));
+}
+
+function estimateCrackTime(entropy) {
+    const guessesPerSecond = 1e12;
+    const combinations = Math.pow(2, entropy);
+    const seconds = combinations / guessesPerSecond / 2;
+    
+    if (seconds < 1) return 'Instantly';
+    if (seconds < 60) return 'Seconds';
+    if (seconds < 3600) return 'Minutes';
+    if (seconds < 86400) return 'Hours';
+    if (seconds < 2592000) return 'Days';
+    if (seconds < 31536000) return 'Months';
+    if (seconds < 3153600000) return 'Years';
+    if (seconds < 31536000000) return 'Decades';
+    return 'Centuries';
+}
+
+function copyPassword() {
+    if (!currentPassword) {
+        showToast('No password to copy!', 'warning');
+        return;
+    }
+    
+    navigator.clipboard.writeText(currentPassword).then(() => {
+        showToast('Password copied to clipboard!', 'success');
+    }).catch(() => {
+        showToast('Failed to copy password!', 'error');
+    });
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+function addToHistory(password) {
+    if (!password) return;
+    
+    passwordHistory.unshift({
+        password: password,
+        timestamp: new Date().toISOString()
+    });
+    
+    passwordHistory = passwordHistory.slice(0, 10);
+    
+    localStorage.setItem('passwordHistory', JSON.stringify(passwordHistory));
+    updateHistoryDisplay();
+}
+
+function updateHistoryDisplay() {
+    const historyList = document.getElementById('history-list');
+    
+    if (passwordHistory.length === 0) {
+        historyList.innerHTML = '<p class="empty-history">No passwords generated yet</p>';
+        return;
+    }
+    
+    historyList.innerHTML = passwordHistory.map((item, index) => `
+        <div class="history-item">
+            <span class="history-text">${item.password}</span>
+            <div class="history-actions">
+                <button class="icon-btn" onclick="copyHistoryPassword(${index})" title="Copy">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
+                <button class="icon-btn" onclick="deleteHistoryPassword(${index})" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function copyHistoryPassword(index) {
+    const password = passwordHistory[index].password;
+    navigator.clipboard.writeText(password).then(() => {
+        showToast('Password copied from history!', 'success');
+    }).catch(() => {
+        showToast('Failed to copy password!', 'error');
+    });
+}
+
+function deleteHistoryPassword(index) {
+    passwordHistory.splice(index, 1);
+    localStorage.setItem('passwordHistory', JSON.stringify(passwordHistory));
+    updateHistoryDisplay();
+    showToast('Password removed from history', 'success');
+}
+
+function clearHistory() {
+    if (passwordHistory.length === 0) {
+        showToast('History is already empty!', 'warning');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to clear all password history?')) {
+        passwordHistory = [];
+        localStorage.setItem('passwordHistory', JSON.stringify(passwordHistory));
+        updateHistoryDisplay();
+        showToast('History cleared!', 'success');
+    }
+}
+
+function applyPreset(presetName) {
+    const preset = PRESETS[presetName];
+    if (!preset) return;
+    
+    document.getElementById('length-slider').value = preset.length;
+    document.getElementById('length-value').textContent = preset.length;
+    document.getElementById('uppercase').checked = preset.uppercase;
+    document.getElementById('lowercase').checked = preset.lowercase;
+    document.getElementById('numbers').checked = preset.numbers;
+    document.getElementById('special').checked = preset.special;
+    
+    const extraSpecial = document.getElementById('extra-special');
+    const excludeAmbiguous = document.getElementById('exclude-ambiguous');
+    const noDuplicates = document.getElementById('no-duplicates');
+    const noSequential = document.getElementById('no-sequential');
+    const noNumbersEnds = document.getElementById('no-numbers-ends');
+    const noSpecialEnds = document.getElementById('no-special-ends');
+    
+    if (extraSpecial) extraSpecial.checked = preset.extraSpecial;
+    if (excludeAmbiguous) excludeAmbiguous.checked = preset.excludeAmbiguous;
+    if (noDuplicates) noDuplicates.checked = preset.noDuplicates;
+    if (noSequential) noSequential.checked = preset.noSequential;
+    if (noNumbersEnds) noNumbersEnds.checked = preset.noNumbersEnds;
+    if (noSpecialEnds) noSpecialEnds.checked = preset.noSpecialEnds;
+    
+    adjustMinValuesBasedOnLength(preset.length);
+    
+    showToast(`Applied ${presetName} preset!`, 'success');
+    generatePassword();
+}
+
+document.addEventListener('DOMContentLoaded', init);
