@@ -1,152 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>PassForgeMatrix Pro</title>
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.min.css" rel="stylesheet">
-	<link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassForge Matrix Pro</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%233b82f6;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='%230a0e27'/%3E%3Ccircle cx='50' cy='50' r='45' fill='none' stroke='url(%23g)' stroke-width='3' opacity='0.3'/%3E%3Cpath d='M 50 15 L 50 35 M 50 65 L 50 85 M 15 50 L 35 50 M 65 50 L 85 50' stroke='url(%23g)' stroke-width='3' stroke-linecap='round'/%3E%3Crect x='35' y='40' width='30' height='35' rx='3' fill='none' stroke='url(%23g)' stroke-width='3'/%3E%3Cpath d='M 40 40 L 40 32 Q 40 22 50 22 Q 60 22 60 32 L 60 40' fill='none' stroke='url(%23g)' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='57' r='4' fill='url(%23g)'/%3E%3Crect x='48' y='60' width='4' height='10' rx='2' fill='url(%23g)'/%3E%3Ccircle cx='30' cy='30' r='2' fill='url(%23g)' opacity='0.6'/%3E%3Ccircle cx='70' cy='30' r='2' fill='url(%23g)' opacity='0.6'/%3E%3Ccircle cx='30' cy='70' r='2' fill='url(%23g)' opacity='0.6'/%3E%3Ccircle cx='70' cy='70' r='2' fill='url(%23g)' opacity='0.6'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-	<div class="container">
-		<button class="theme-toggle" onclick="toggleTheme()">
-			<svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<circle cx="12" cy="12" r="5"></circle>
-				<line x1="12" y1="1" x2="12" y2="3"></line>
-				<line x1="12" y1="21" x2="12" y2="23"></line>
-				<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-				<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-				<line x1="1" y1="12" x2="3" y2="12"></line>
-				<line x1="21" y1="12" x2="23" y2="12"></line>
-				<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-				<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-			</svg>
-			<svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-			</svg>
-		</button>
-		<div class="title">PassForgeMatrix Pro</div>
-		<div class="password-generator">
-			<div class="password-display-container">
-				<div class="password-display" id="password-display"></div>
-				<div class="password-strength">
-					<div class="strength-bar" id="strength-bar"></div>
-				</div>
-				<div class="password-info">
-					<span id="strength-text"></span>
-					<span id="crack-time"></span>
-				</div>
-				<div class="font-size-controls">
-					<button class="font-size-btn" onclick="changeFontSize(-0.1)">A-</button>
-					<button class="font-size-btn" onclick="changeFontSize(0.1)">A+</button>
-				</div>
-			</div>
-			<div class="options">
-				<div class="option">
-					<label for="password-length">Length</label>
-					<input type="range" id="password-length" name="length" min="8" max="128" value="16" class="slider">
-					<span id="password-length-label">16</span>
-				</div>
-				<div class="option">
-					<label>Uppercase (A-Z)</label>
-					<label class="toggle-switch">
-						<input type="checkbox" checked id="upper">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label>Lowercase (a-z)</label>
-					<label class="toggle-switch">
-						<input type="checkbox" checked id="lower">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label>Numbers (0-9)</label>
-					<label class="toggle-switch">
-						<input type="checkbox" id="number">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label>Special (!@#$%^&*)</label>
-					<label class="toggle-switch">
-						<input type="checkbox" id="special">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label>Extra Special ((){}[]<>,.;:)</label>
-					<label class="toggle-switch">
-						<input type="checkbox" id="extra-special">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-			</div>
-			<div class="advanced-options">
-				<div class="option">
-					<label>Avoid ambiguous characters</label>
-					<label class="toggle-switch">
-						<input type="checkbox" checked id="ambiguous">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label>Avoid duplicate characters</label>
-					<label class="toggle-switch">
-						<input type="checkbox" id="avoid-duplicates">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label>Minimum uppercase</label>
-					<div class="number-control">
-						<button class="number-btn" onclick="changeMinValue('min-upper', -1)">-</button>
-						<input type="text" readonly value="1" id="min-upper" class="number-input">
-						<button class="number-btn" onclick="changeMinValue('min-upper', 1)">+</button>
-					</div>
-				</div>
-				<div class="option">
-					<label>Minimum numbers</label>
-					<div class="number-control">
-						<button class="number-btn" onclick="changeMinValue('min-numbers', -1)">-</button>
-						<input type="text" readonly value="1" id="min-numbers" class="number-input">
-						<button class="number-btn" onclick="changeMinValue('min-numbers', 1)">+</button>
-					</div>
-				</div>
-				<div class="option">
-					<label>Minimum special</label>
-					<div class="number-control">
-						<button class="number-btn" onclick="changeMinValue('min-special', -1)">-</button>
-						<input type="text" readonly value="1" id="min-special" class="number-input">
-						<button class="number-btn" onclick="changeMinValue('min-special', 1)">+</button>
-					</div>
-				</div>
-				<div class="option">
-					<label>No numbers at start/end</label>
-					<label class="toggle-switch">
-						<input type="checkbox" id="no-number-ends" disabled>
-						<span class="slider-round"></span>
-					</label>
-				</div>
-				<div class="option">
-					<label>No special at start/end</label>
-					<label class="toggle-switch">
-						<input type="checkbox" id="no-special-ends">
-						<span class="slider-round"></span>
-					</label>
-				</div>
-			</div>
-			<div class="btn-container">
-				<button class="btn refresh-btn" onclick="updatePasswordDisplay()">Generate</button>
-				<button class="btn" onclick="copyToClipboard()">Copy</button>
-			</div>
-		</div>
-		<div id="copy-success" class="copy-success"></div>
-	</div>
-	<div class="footer"> Designed by: <a href="https://t.me/BXAMbot" style="color: turquoise; text-decoration: none;">Anonymous</a>
-	</div>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.min.js"></script>
-	<script src="js/script.js"></script>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="60" height="60">
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#logoGradient)" stroke-width="3" opacity="0.3"/>
+                    <path d="M 50 15 L 50 35 M 50 65 L 50 85 M 15 50 L 35 50 M 65 50 L 85 50" stroke="url(#logoGradient)" stroke-width="3" stroke-linecap="round"/>
+                    <rect x="35" y="40" width="30" height="35" rx="3" fill="none" stroke="url(#logoGradient)" stroke-width="3"/>
+                    <path d="M 40 40 L 40 32 Q 40 22 50 22 Q 60 22 60 32 L 60 40" fill="none" stroke="url(#logoGradient)" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="50" cy="57" r="4" fill="url(#logoGradient)"/>
+                    <rect x="48" y="60" width="4" height="10" rx="2" fill="url(#logoGradient)"/>
+                    <circle cx="30" cy="30" r="2" fill="url(#logoGradient)" opacity="0.6"/>
+                    <circle cx="70" cy="30" r="2" fill="url(#logoGradient)" opacity="0.6"/>
+                    <circle cx="30" cy="70" r="2" fill="url(#logoGradient)" opacity="0.6"/>
+                    <circle cx="70" cy="70" r="2" fill="url(#logoGradient)" opacity="0.6"/>
+                </svg>
+            </div>
+            <h1 class="title">PassForge Matrix Pro</h1>
+            <p class="subtitle">Professional Password Generator</p>
+            <button class="theme-toggle" id="theme-toggle">
+                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="password-display-section">
+            <div class="password-display" id="password-display">Click Generate</div>
+            
+            <div class="password-actions">
+                <button class="btn btn-primary" id="generate-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                    </svg>
+                    Generate
+                </button>
+                <button class="btn btn-secondary" id="copy-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copy
+                </button>
+            </div>
+
+            <div class="strength-indicator">
+                <div class="strength-bar-container">
+                    <div class="strength-bar" id="strength-bar"></div>
+                </div>
+                <div class="strength-info">
+                    <span class="strength-text" id="strength-text">-</span>
+                    <span id="crack-time">-</span>
+                </div>
+            </div>
+
+            <div class="entropy-info">
+                <div class="entropy-item">
+                    <span class="entropy-label">Entropy</span>
+                    <span class="entropy-value" id="entropy-value">0 bits</span>
+                </div>
+                <div class="entropy-item">
+                    <span class="entropy-label">Combinations</span>
+                    <span class="entropy-value" id="combinations">0</span>
+                </div>
+            </div>
+
+            <div class="color-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b35;"></div>
+                    <span>Uppercase</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
+                    <span>Lowercase</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffd93d;"></div>
+                    <span>Numbers</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #c77dff;"></div>
+                    <span>Special</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="basic">Basic</button>
+            <button class="tab" data-tab="advanced">Advanced</button>
+            <button class="tab" data-tab="presets">Presets</button>
+            <button class="tab" data-tab="history">History</button>
+        </div>
+
+        <div class="tab-content active" id="basic-tab">
+            <div class="option-group">
+                <div class="slider-container">
+                    <div class="slider-header">
+                        <span class="option-label">Password Length</span>
+                        <span class="slider-value" id="length-value">16</span>
+                    </div>
+                    <input type="range" id="length-slider" min="8" max="128" value="16">
+                </div>
+            </div>
+
+            <div class="option-group">
+                <span class="option-label">Character Types</span>
+                <div class="checkbox-grid">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="uppercase" checked>
+                        <span class="checkbox-label">Uppercase (A-Z)</span>
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="lowercase" checked>
+                        <span class="checkbox-label">Lowercase (a-z)</span>
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="numbers" checked>
+                        <span class="checkbox-label">Numbers (0-9)</span>
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="special">
+                        <span class="checkbox-label">Special (!@#$%^&*)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="advanced-tab">
+            <div class="option-group">
+                <span class="option-label">Additional Options</span>
+                <div class="checkbox-grid">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="extra-special">
+                        <span class="checkbox-label">Extra Special ([]{}...)</span>
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="exclude-ambiguous" checked>
+                        <span class="checkbox-label">Exclude Ambiguous</span>
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="no-duplicates">
+                        <span class="checkbox-label">No Duplicates</span>
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="no-sequential">
+                        <span class="checkbox-label">No Sequential</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <span class="option-label">Position Rules</span>
+                <div class="checkbox-grid">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="no-numbers-ends">
+                        <span class="checkbox-label">No Numbers at Start/End</span>
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="no-special-ends">
+                        <span class="checkbox-label">No Special at Start/End</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <span class="option-label">Minimum Requirements</span>
+                <div class="number-input-group">
+                    <label>Minimum Uppercase</label>
+                    <div class="number-controls">
+                        <button class="number-btn" data-target="min-uppercase" data-action="decrease">-</button>
+                        <span class="number-display" id="min-uppercase">1</span>
+                        <button class="number-btn" data-target="min-uppercase" data-action="increase">+</button>
+                    </div>
+                </div>
+                <div class="number-input-group">
+                    <label>Minimum Numbers</label>
+                    <div class="number-controls">
+                        <button class="number-btn" data-target="min-numbers" data-action="decrease">-</button>
+                        <span class="number-display" id="min-numbers">1</span>
+                        <button class="number-btn" data-target="min-numbers" data-action="increase">+</button>
+                    </div>
+                </div>
+                <div class="number-input-group">
+                    <label>Minimum Special</label>
+                    <div class="number-controls">
+                        <button class="number-btn" data-target="min-special" data-action="decrease">-</button>
+                        <span class="number-display" id="min-special">1</span>
+                        <button class="number-btn" data-target="min-special" data-action="increase">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="presets-tab">
+            <div class="option-group">
+                <span class="option-label">Quick Presets</span>
+                <div class="presets">
+                    <button class="preset-btn" data-preset="memorable">Memorable</button>
+                    <button class="preset-btn" data-preset="strong">Strong</button>
+                    <button class="preset-btn" data-preset="maximum">Maximum</button>
+                    <button class="preset-btn" data-preset="pin">PIN Code</button>
+                    <button class="preset-btn" data-preset="wifi">WiFi Key</button>
+                    <button class="preset-btn" data-preset="database">Database</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="history-tab">
+            <div class="history-section" id="history-list">
+                <p class="empty-history">No passwords generated yet</p>
+            </div>
+            <button class="btn btn-secondary" id="clear-history-btn" style="margin-top: 10px; width: 100%;">Clear History</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <div class="footer">
+        Designed by: <a href="https://t.me/BXAMbot">Anonymous</a>
+    </div>
+
+    <script src="js/script.js"></script>
 </body>
 </html>
