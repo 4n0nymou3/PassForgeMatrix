@@ -699,3 +699,78 @@ input[type="range"]::-moz-range-thumb {
         height: 45px;
     }
 }
+
+.quantum-safe-section {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid var(--accent-primary);
+    margin-top: 30px;
+}
+
+.quantum-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent-primary);
+    font-size: 14px;
+}
+
+.quantum-label svg {
+    animation: quantumPulse 2s ease-in-out infinite;
+}
+
+@keyframes quantumPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+.quantum-description {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 10px 0 15px 0;
+    line-height: 1.6;
+}
+
+.quantum-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    color: white;
+    padding: 15px;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    transition: all 0.3s ease;
+}
+
+.quantum-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+}
+
+.quantum-btn svg {
+    animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-5deg);
+    }
+    75% {
+        transform: rotate(5deg);
+    }
+}
