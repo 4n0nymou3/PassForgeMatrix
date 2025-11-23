@@ -84,6 +84,19 @@ const PRESETS = {
         noSequential: false,
         noNumbersEnds: false,
         noSpecialEnds: false
+    },
+    quantum: {
+        length: 64,
+        uppercase: true,
+        lowercase: true,
+        numbers: true,
+        special: true,
+        extraSpecial: false,
+        excludeAmbiguous: true,
+        noDuplicates: true,
+        noSequential: true,
+        noNumbersEnds: true, 
+        noSpecialEnds: true
     }
 };
 
@@ -680,7 +693,12 @@ function applyPreset(presetName) {
     
     adjustMinValuesBasedOnLength(preset.length);
     
-    showToast(`Applied ${presetName} preset!`, 'success');
+    if (presetName === 'quantum') {
+        showToast('🔒 Quantum-Safe password generated! (256+ bits entropy)', 'success');
+    } else {
+        showToast(`Applied ${presetName} preset!`, 'success');
+    }
+    
     generatePassword();
 }
 
