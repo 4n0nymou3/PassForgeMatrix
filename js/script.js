@@ -573,6 +573,7 @@ function updateStrengthIndicator(password, charsetSize, length) {
     const strengthText = document.getElementById('strength-text');
     const crackTime = document.getElementById('crack-time');
     const entropyValue = document.getElementById('entropy-value');
+    const quantumBits = document.getElementById('quantum-bits');
     const combinations = document.getElementById('combinations');
 
     let color, text;
@@ -602,18 +603,13 @@ function updateStrengthIndicator(password, charsetSize, length) {
     crackTime.textContent = `Crack Time: ${crackTimeText}`;
 
     entropyValue.textContent = `${Math.round(entropy)} bits`;
+    quantumBits.textContent = `${Math.round(entropy / 2)} bits`;
 
     const totalCombinations = Math.pow(charsetSize, length);
-    if (totalCombinations > 1e15) {
-        combinations.textContent = `${(totalCombinations / 1e15).toFixed(2)}Q`;
-    } else if (totalCombinations > 1e12) {
-        combinations.textContent = `${(totalCombinations / 1e12).toFixed(2)}T`;
-    } else if (totalCombinations > 1e9) {
-        combinations.textContent = `${(totalCombinations / 1e9).toFixed(2)}B`;
-    } else if (totalCombinations > 1e6) {
-        combinations.textContent = `${(totalCombinations / 1e6).toFixed(2)}M`;
+    if (totalCombinations > 1e6) {
+        combinations.textContent = totalCombinations.toExponential(2).replace('e+', 'e');
     } else {
-        combinations.textContent = totalCombinations.toLocaleString();
+        combinations.textContent = Math.round(totalCombinations).toLocaleString();
     }
 }
 
@@ -817,7 +813,7 @@ function applyPreset(presetName) {
     updateButtonStates();
 
     if (presetName === 'quantum') {
-        showToast('Quantum-Safe password generated! (256+ bits entropy)', 'success');
+        showToast('Quantum-Safe password generated! (~192-bit effective security under Grover\u2019s algorithm)', 'success');
     } else {
         showToast(`Applied ${presetName} preset!`, 'success');
     }
