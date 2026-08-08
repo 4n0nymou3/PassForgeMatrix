@@ -105,10 +105,10 @@ h1{font-family:var(--font-mono);font-size:17px;font-weight:600;color:var(--text)
 .strength-info{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-family:var(--font-mono)}
 .strength-text{font-weight:700}
 
-.entropy-info{display:flex;justify-content:space-around;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:13px}
-.entropy-item{text-align:center}
-.entropy-label{color:var(--muted);display:block;margin-bottom:4px;font-size:11px}
-.entropy-value{font-weight:700;color:var(--blue);font-size:15px;font-family:var(--font-mono)}
+.entropy-info{display:flex;justify-content:space-around;padding:12px 6px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:13px;gap:4px}
+.entropy-item{text-align:center;flex:1;min-width:0}
+.entropy-label{color:var(--muted);display:block;margin-bottom:4px;font-size:10px;white-space:nowrap}
+.entropy-value{font-weight:700;color:var(--blue);font-size:13.5px;font-family:var(--font-mono);white-space:nowrap}
 
 .color-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;justify-content:center}
 .legend-item{display:flex;align-items:center;gap:5px}
